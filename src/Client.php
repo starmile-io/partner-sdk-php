@@ -7,6 +7,7 @@ use Starmile\PartnerSdk\Resource\Catalogue;
 use Starmile\PartnerSdk\Resource\Events;
 use Starmile\PartnerSdk\Resource\Orders;
 use Starmile\PartnerSdk\Resource\StatusPool;
+use Starmile\PartnerSdk\Retry\RetryPolicy;
 
 /**
  * The entry point to the Starmile Partner API.
@@ -27,7 +28,7 @@ use Starmile\PartnerSdk\Resource\StatusPool;
 final class Client
 {
     /** The SDK version (sent in the User-Agent). */
-    const VERSION = '1.0.0';
+    const VERSION = '1.1.0';
 
     /** @var Configuration */
     private $configuration;
@@ -65,7 +66,9 @@ final class Client
             $configuration->getHttpClient(),
             $this->tokenManager,
             $configuration->getBaseUrl(),
-            $configuration->getUserAgent()
+            $configuration->getUserAgent(),
+            $configuration->getRetryPolicy(),
+            $configuration->getSleeper()
         );
     }
 
@@ -78,6 +81,38 @@ final class Client
     public static function create($clientId, $clientSecret, array $options = array())
     {
         return new self(new Configuration($clientId, $clientSecret, $options));
+    }
+
+    /**
+     * Return a clone of this client whose NEXT call retries on transient failure
+     * — mirroring Laravel's HTTP client `retry()`. Unlike the safe-only default,
+     * this opt-in retries ANY method, including writes, because you asked for it:
+     *
+     * <code>
+     * $starmile->retry(3, 200)->orders()->create($order);
+     * // custom decision — also retry a specific conflict:
+     * $starmile->retry(4, 200, fn ($e) => $e instanceof RateLimitException || $e->getStatusCode() === 409)
+     *          ->events()->report($event);
+     * </code>
+     *
+     * The original client is unchanged; chain `retry()` only where you want it.
+     *
+     * @param int           $times   Total attempts (e.g. 3 = up to 2 retries).
+     * @param int           $sleepMs Base backoff in milliseconds (exponential + jitter).
+     * @param callable|null $when    Optional fn(StarmileException $e, int $attempt): bool
+     *                               deciding whether to retry; replaces the default rule.
+     * @return Client
+     */
+    public function retry($times, $sleepMs = 100, ?callable $when = null)
+    {
+        $clone = clone $this;
+        $clone->connection = $this->connection->withRetryPolicy(RetryPolicy::custom($times, $sleepMs, $when));
+        $clone->catalogue = null;
+        $clone->orders = null;
+        $clone->statusPool = null;
+        $clone->events = null;
+
+        return $clone;
     }
 
     /**

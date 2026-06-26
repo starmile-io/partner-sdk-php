@@ -66,6 +66,6 @@ final class TokenAndErrorsTest extends TestCase
 
     private function client(FakeHttpClient $http)
     {
-        return new Client(new Configuration('id', 'secret', array('http_client' => $http)));
+        return new Client(new Configuration('id', 'secret', array('http_client' => $http, 'max_attempts' => 1)));
     }
 }

@@ -7,6 +7,9 @@ use Starmile\PartnerSdk\Auth\Credentials;
 use Starmile\PartnerSdk\Auth\TokenStorageInterface;
 use Starmile\PartnerSdk\Http\CurlHttpClient;
 use Starmile\PartnerSdk\Http\HttpClientInterface;
+use Starmile\PartnerSdk\Retry\RealSleeper;
+use Starmile\PartnerSdk\Retry\RetryPolicy;
+use Starmile\PartnerSdk\Retry\Sleeper;
 
 /**
  * Immutable configuration for a {@see Client}: the credentials, the API base URL,
@@ -34,6 +37,12 @@ final class Configuration
     /** @var string */
     private $userAgent;
 
+    /** @var RetryPolicy */
+    private $retryPolicy;
+
+    /** @var Sleeper */
+    private $sleeper;
+
     /**
      * @param array{
      *     base_url?: string,
@@ -43,7 +52,11 @@ final class Configuration
      *     verify_tls?: bool,
      *     connect_timeout?: int,
      *     timeout?: int,
-     *     user_agent?: string
+     *     user_agent?: string,
+     *     max_attempts?: int,
+     *     retry_base_delay_ms?: int,
+     *     retry_max_delay_ms?: int,
+     *     sleeper?: Sleeper
      * } $options
      */
     public function __construct($clientId, $clientSecret, array $options = array())
@@ -71,6 +84,16 @@ final class Configuration
 
         $this->tokenStorage = isset($options['token_storage']) ? $options['token_storage'] : null;
         $this->userAgent = isset($options['user_agent']) ? $options['user_agent'] : 'starmile-partner-sdk-php/' . Client::VERSION;
+
+        // Default resilience: retry SAFE (GET) requests on transient failures
+        // (network, 429, 5xx). Writes are never retried automatically — opt in
+        // per call with Client::retry(). max_attempts = 1 disables retries.
+        $maxAttempts = isset($options['max_attempts']) ? (int) $options['max_attempts'] : 3;
+        $baseDelay = isset($options['retry_base_delay_ms']) ? (int) $options['retry_base_delay_ms'] : 200;
+        $maxDelay = isset($options['retry_max_delay_ms']) ? (int) $options['retry_max_delay_ms'] : 5000;
+        $this->retryPolicy = RetryPolicy::safeDefault($maxAttempts, $baseDelay, $maxDelay);
+
+        $this->sleeper = isset($options['sleeper']) ? $options['sleeper'] : new RealSleeper();
     }
 
     /**
@@ -111,5 +134,21 @@ final class Configuration
     public function getUserAgent()
     {
         return $this->userAgent;
+    }
+
+    /**
+     * @return RetryPolicy
+     */
+    public function getRetryPolicy()
+    {
+        return $this->retryPolicy;
+    }
+
+    /**
+     * @return Sleeper
+     */
+    public function getSleeper()
+    {
+        return $this->sleeper;
     }
 }

@@ -4,6 +4,21 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-06-27
+
+### Added
+- **Automatic retries** for safe (GET) requests on transient failures (network
+  errors, `429`, `5xx`) with exponential backoff + jitter, honoring `Retry-After`.
+  Configurable via `max_attempts` / `retry_base_delay_ms` / `retry_max_delay_ms`
+  (`max_attempts: 1` disables). Non-idempotent writes are never auto-retried.
+- **`Client::retry($times, $sleepMs, $when)`** — fluent, per-call opt-in that
+  retries any call (writes included), with an optional custom decision callback,
+  mirroring Laravel's HTTP client. Returns a one-off client; the original is
+  unchanged.
+- **`ApiException::getRawBody()`** — preserves the undecoded response body so a
+  non-JSON error (e.g. a gateway's HTML `502`) stays inspectable.
+- Pluggable `Sleeper` (default `RealSleeper`) so retry backoff is testable.
+
 ## [1.0.0] - 2026-06-27
 
 Initial release. Full coverage of the Partner API surface as it stands today.

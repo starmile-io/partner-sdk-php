@@ -5,13 +5,18 @@ namespace Starmile\PartnerSdk;
 use Starmile\PartnerSdk\Auth\TokenManager;
 use Starmile\PartnerSdk\Exception\ApiException;
 use Starmile\PartnerSdk\Exception\RateLimitException;
+use Starmile\PartnerSdk\Exception\StarmileException;
 use Starmile\PartnerSdk\Http\HttpClientInterface;
 use Starmile\PartnerSdk\Http\RawResponse;
+use Starmile\PartnerSdk\Retry\RealSleeper;
+use Starmile\PartnerSdk\Retry\RetryPolicy;
+use Starmile\PartnerSdk\Retry\Sleeper;
 
 /**
  * The authenticated JSON transport every resource shares. It attaches the bearer
- * token, encodes/decodes JSON, turns non-2xx responses into typed exceptions, and
- * transparently refreshes the token once on a 401.
+ * token, encodes/decodes JSON, turns non-2xx responses into typed exceptions,
+ * transparently refreshes the token once on a 401, and applies the
+ * {@see RetryPolicy} for transient failures (network errors, 429, 5xx).
  *
  * Not part of the public API — obtain resources from {@see Client} instead.
  */
@@ -29,12 +34,37 @@ final class Connection
     /** @var string */
     private $userAgent;
 
-    public function __construct(HttpClientInterface $http, TokenManager $tokenManager, $baseUrl, $userAgent)
-    {
+    /** @var RetryPolicy */
+    private $retryPolicy;
+
+    /** @var Sleeper */
+    private $sleeper;
+
+    public function __construct(
+        HttpClientInterface $http,
+        TokenManager $tokenManager,
+        $baseUrl,
+        $userAgent,
+        ?RetryPolicy $retryPolicy = null,
+        ?Sleeper $sleeper = null
+    ) {
         $this->http = $http;
         $this->tokenManager = $tokenManager;
         $this->baseUrl = rtrim((string) $baseUrl, '/');
         $this->userAgent = (string) $userAgent;
+        $this->retryPolicy = $retryPolicy === null ? RetryPolicy::disabled() : $retryPolicy;
+        $this->sleeper = $sleeper === null ? new RealSleeper() : $sleeper;
+    }
+
+    /**
+     * Return a copy of this connection that uses a different retry policy
+     * (immutable — the original is untouched). Backs {@see Client::retry()}.
+     *
+     * @return Connection
+     */
+    public function withRetryPolicy(RetryPolicy $retryPolicy)
+    {
+        return new self($this->http, $this->tokenManager, $this->baseUrl, $this->userAgent, $retryPolicy, $this->sleeper);
     }
 
     /**
@@ -65,14 +95,41 @@ final class Connection
     }
 
     /**
-     * Perform a request and return the decoded JSON body. Retries once after a
-     * forced token refresh if the first attempt is rejected with 401.
+     * Perform a request (with retries) and return the decoded JSON body.
      *
      * @param array<string, mixed>      $query
      * @param array<string, mixed>|null $body
      * @return array<string, mixed>
      */
     public function request($method, $path, array $query = array(), $body = null)
+    {
+        $attempt = 0;
+
+        while (true) {
+            $attempt++;
+
+            try {
+                return $this->attempt($method, $path, $query, $body);
+            } catch (StarmileException $e) {
+                if (!$this->retryPolicy->shouldRetry($method, $e, $attempt)) {
+                    throw $e;
+                }
+
+                $retryAfter = $e instanceof RateLimitException ? $e->getRetryAfter() : null;
+                $this->sleeper->sleepMs($this->retryPolicy->delayFor($attempt, $retryAfter));
+            }
+        }
+    }
+
+    /**
+     * A single attempt: dispatch, refresh-and-retry once on 401, decode, and
+     * raise a typed exception on a non-2xx status.
+     *
+     * @param array<string, mixed>      $query
+     * @param array<string, mixed>|null $body
+     * @return array<string, mixed>
+     */
+    private function attempt($method, $path, array $query, $body)
     {
         $response = $this->dispatch($method, $path, $query, $body, false);
 
@@ -141,7 +198,7 @@ final class Connection
      */
     private function toException(RawResponse $response, array $decoded)
     {
-        $exception = ApiException::fromResponse($response->getStatusCode(), $decoded);
+        $exception = ApiException::fromResponse($response->getStatusCode(), $decoded, $response->getBody());
 
         if ($exception instanceof RateLimitException) {
             $exception->setRetryAfter($response->getHeader('retry-after'));

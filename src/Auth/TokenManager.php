@@ -96,7 +96,7 @@ final class TokenManager
         }
 
         if (!$response->isSuccessful()) {
-            throw ApiException::fromResponse($response->getStatusCode(), $body);
+            throw ApiException::fromResponse($response->getStatusCode(), $body, $response->getBody());
         }
 
         $token = AccessToken::fromTokenResponse($body);

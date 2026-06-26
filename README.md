@@ -59,6 +59,9 @@ environment — never hardcode credentials or per-environment hosts.
 | `connect_timeout` | `10`                        | Connection timeout (seconds).                                      |
 | `timeout`         | `30`                        | Total request timeout (seconds).                                   |
 | `user_agent`      | `starmile-partner-sdk-php/x`| Override the `User-Agent`.                                         |
+| `max_attempts`    | `3`                         | Total attempts for **safe (GET)** calls on transient failure. `1` disables auto-retry. |
+| `retry_base_delay_ms` | `200`                   | Base backoff between retries (exponential + jitter).              |
+| `retry_max_delay_ms`  | `5000`                  | Cap on the computed backoff.                                      |
 
 ## Capabilities
 
@@ -207,6 +210,39 @@ try {
 } catch (StarmileException $e) {
     // any other failure
     $e->getMessage();
+}
+```
+
+## Retries & resilience
+
+By default the SDK retries **safe (GET)** requests on transient failures —
+network errors, `429`, and `5xx` — with exponential backoff + jitter, honoring a
+`Retry-After` header. Non-idempotent writes (`POST /orders`, `POST /partner/events`)
+are **never** retried automatically, so a flaky response can't create a duplicate
+order. Tune or disable this with `max_attempts` (see options above).
+
+When you *do* want a write retried, opt in per call with `retry()` — mirroring
+Laravel's HTTP client. It returns a one-off client; the original is unchanged:
+
+```php
+// Retry this create up to 3 times (writes included, because you asked):
+$starmile->retry(3, 200)->orders()->create($order);
+
+// Custom decision — also retry a specific conflict:
+use Starmile\PartnerSdk\Exception\RateLimitException;
+
+$starmile
+    ->retry(4, 200, fn ($e) => $e instanceof RateLimitException || $e->getStatusCode() === 409)
+    ->events()->report($event);
+```
+
+When a failure can't be decoded as JSON (e.g. a gateway's HTML `502`), the raw
+body is preserved on the exception via `getRawBody()`:
+
+```php
+catch (\Starmile\PartnerSdk\Exception\ApiException $e) {
+    $e->getResponseBody(); // [] when the body wasn't JSON
+    $e->getRawBody();      // the original "<html>...502 Bad Gateway..." string
 }
 ```
 

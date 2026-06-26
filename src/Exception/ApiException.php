@@ -20,6 +20,9 @@ class ApiException extends StarmileException
     /** @var array<string, mixed> */
     protected $body;
 
+    /** @var string|null The undecoded response body (preserved even when not JSON). */
+    protected $rawBody;
+
     /**
      * @param array<string, mixed> $body
      */
@@ -31,31 +34,43 @@ class ApiException extends StarmileException
     }
 
     /**
-     * Build the most specific exception for a failed response.
+     * Build the most specific exception for a failed response. `$rawBody` is the
+     * undecoded response string, kept so an opaque error page (a gateway's HTML
+     * 502, an empty 500) is still inspectable via {@see getRawBody()}.
      *
      * @param array<string, mixed> $body
      * @return ApiException
      */
-    public static function fromResponse($statusCode, array $body)
+    public static function fromResponse($statusCode, array $body, $rawBody = null)
     {
         $message = self::extractMessage($body, $statusCode);
 
         switch ($statusCode) {
             case 401:
-                return new AuthenticationException($message, $statusCode, $body);
+                $exception = new AuthenticationException($message, $statusCode, $body);
+                break;
             case 403:
-                return new AuthorizationException($message, $statusCode, $body);
+                $exception = new AuthorizationException($message, $statusCode, $body);
+                break;
             case 404:
-                return new NotFoundException($message, $statusCode, $body);
+                $exception = new NotFoundException($message, $statusCode, $body);
+                break;
             case 409:
-                return new ConflictException($message, $statusCode, $body);
+                $exception = new ConflictException($message, $statusCode, $body);
+                break;
             case 422:
-                return new ValidationException($message, $statusCode, $body);
+                $exception = new ValidationException($message, $statusCode, $body);
+                break;
             case 429:
-                return new RateLimitException($message, $statusCode, $body);
+                $exception = new RateLimitException($message, $statusCode, $body);
+                break;
             default:
-                return new self($message, $statusCode, $body);
+                $exception = new self($message, $statusCode, $body);
         }
+
+        $exception->rawBody = $rawBody === null ? null : (string) $rawBody;
+
+        return $exception;
     }
 
     /**
@@ -102,6 +117,17 @@ class ApiException extends StarmileException
     public function getResponseBody()
     {
         return $this->body;
+    }
+
+    /**
+     * The undecoded response body, when available. Useful when the server (or a
+     * proxy in front of it) returned a non-JSON error the decoder couldn't parse.
+     *
+     * @return string|null
+     */
+    public function getRawBody()
+    {
+        return $this->rawBody;
     }
 
     /**
