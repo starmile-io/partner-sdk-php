@@ -1,0 +1,74 @@
+<?php
+
+namespace Starmile\PartnerSdk\Tests\Unit;
+
+use PHPUnit\Framework\TestCase;
+use Starmile\PartnerSdk\Client;
+use Starmile\PartnerSdk\Configuration;
+use Starmile\PartnerSdk\Tests\Support\FakeHttpClient;
+
+final class StatusPoolTest extends TestCase
+{
+    public function testChangesReturnsAPageWithCursorAndHasMore()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array(
+            'data' => array(array('cursor' => 10, 'tracking_number' => 'SM1', 'status' => 'delivered')),
+            'next_cursor' => 10,
+            'has_more' => true,
+        ));
+
+        $page = $this->client($http)->statusPool()->changes(0, 50);
+
+        $this->assertCount(1, $page->changes());
+        $this->assertSame(10, $page->nextCursor());
+        $this->assertTrue($page->hasMore());
+
+        // The poll passes since + a clamped limit.
+        $this->assertStringContainsString('since=0', $http->requests[1]['url']);
+        $this->assertStringContainsString('limit=50', $http->requests[1]['url']);
+    }
+
+    public function testEachDrainsAcrossPagesUntilExhausted()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array(
+            'data' => array(array('cursor' => 1), array('cursor' => 2)),
+            'next_cursor' => 2,
+            'has_more' => true,
+        ));
+        $http->queueJson(200, array(
+            'data' => array(array('cursor' => 3)),
+            'next_cursor' => 3,
+            'has_more' => false,
+        ));
+
+        $cursors = array();
+        foreach ($this->client($http)->statusPool()->each(0) as $change) {
+            $cursors[] = $change['cursor'];
+        }
+
+        $this->assertSame(array(1, 2, 3), $cursors);
+        // Token + two pages.
+        $this->assertCount(3, $http->requests);
+        $this->assertStringContainsString('since=2', $http->requests[2]['url']);
+    }
+
+    public function testLimitIsClampedToTheServerMaximum()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array(), 'next_cursor' => 0, 'has_more' => false));
+
+        $this->client($http)->statusPool()->changes(0, 9999);
+
+        $this->assertStringContainsString('limit=200', $http->requests[1]['url']);
+    }
+
+    private function client(FakeHttpClient $http)
+    {
+        return new Client(new Configuration('id', 'secret', array('http_client' => $http)));
+    }
+}

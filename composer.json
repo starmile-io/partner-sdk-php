@@ -1,0 +1,48 @@
+{
+    "name": "starmile/partner-sdk",
+    "description": "Official PHP SDK for the Starmile Partner API — cross-border logistics integration (catalogue, orders, status pool, inbound events).",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "starmile",
+        "logistics",
+        "cross-border",
+        "shipping",
+        "partner-api",
+        "sdk"
+    ],
+    "homepage": "https://api.starmile.app",
+    "support": {
+        "docs": "https://api.starmile.app",
+        "source": "https://github.com/starmile/partner-sdk-php"
+    },
+    "require": {
+        "php": ">=7.1",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">=7.5 <10"
+    },
+    "suggest": {
+        "psr/log": "Pass any PSR-3 logger to Configuration to log requests and responses."
+    },
+    "autoload": {
+        "psr-4": {
+            "Starmile\\PartnerSdk\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Starmile\\PartnerSdk\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
