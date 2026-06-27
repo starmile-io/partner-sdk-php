@@ -4,6 +4,21 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-27
+
+### Changed
+- **Recipient government ID is now `gov_id`** (was `customer_pin`) — it is an AZ FIN
+  or a foreign passport. `OrderBuilder::recipient(...)`'s fourth argument now sends
+  `gov_id`. Update any code that set `customer_pin` via the `set()` escape hatch.
+
+### Added
+- **`OrderBuilder::govId()`** — sets the recipient's government ID (`gov_id`) directly.
+
+### Notes
+- `OrderBuilder::consolidationRequired()` now documents that the API rejects the
+  order with `422` ("Consolidation is not enabled for this service.") when the chosen
+  service does not enable consolidation.
+
 ## [1.1.0] - 2026-06-27
 
 ### Added

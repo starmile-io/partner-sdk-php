@@ -48,11 +48,12 @@ final class OrderBuilder
     }
 
     /**
-     * The recipient. `pin` is the government ID (customer_pin).
+     * The recipient. `govId` is the recipient's government ID (`gov_id`) — the AZ FIN
+     * or a foreign passport number — used for the customs declaration.
      *
      * @return $this
      */
-    public function recipient($name = null, $phone = null, $email = null, $pin = null)
+    public function recipient($name = null, $phone = null, $email = null, $govId = null)
     {
         if ($name !== null) {
             $this->attributes['customer_name'] = $name;
@@ -63,9 +64,21 @@ final class OrderBuilder
         if ($email !== null) {
             $this->attributes['customer_email'] = $email;
         }
-        if ($pin !== null) {
-            $this->attributes['customer_pin'] = $pin;
+        if ($govId !== null) {
+            $this->attributes['gov_id'] = $govId;
         }
+
+        return $this;
+    }
+
+    /**
+     * The recipient's government ID (`gov_id`) — AZ FIN or foreign passport.
+     *
+     * @return $this
+     */
+    public function govId($govId)
+    {
+        $this->attributes['gov_id'] = $govId;
 
         return $this;
     }
@@ -140,6 +153,10 @@ final class OrderBuilder
     }
 
     /**
+     * Request consolidation of the order's parcels. The service must enable it: if
+     * the chosen service does not, the API rejects the order with `422`
+     * ("Consolidation is not enabled for this service.").
+     *
      * @return $this
      */
     public function consolidationRequired($required = true)

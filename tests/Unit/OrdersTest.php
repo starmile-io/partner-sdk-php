@@ -21,7 +21,7 @@ final class OrdersTest extends TestCase
         $http->queueJson(201, array('data' => array('id' => 99, 'tracking_number' => 'SM123')));
 
         $order = OrderBuilder::make(7, 'ORD-1')
-            ->recipient('Jane Doe', '+994500000000')
+            ->recipient('Jane Doe', '+994500000000', null, '5AB12C3')
             ->deliverToPudo(42)
             ->addShipment(
                 ShipmentBuilder::make('ITEM-1')
@@ -38,6 +38,9 @@ final class OrdersTest extends TestCase
         $this->assertSame('ORD-1', $body['order_id']);
         $this->assertSame('pudo', $body['delivery']);
         $this->assertSame(42, $body['pudo_id']);
+        // The recipient government ID is sent as gov_id (was customer_pin).
+        $this->assertSame('5AB12C3', $body['gov_id']);
+        $this->assertArrayNotHasKey('customer_pin', $body);
         $this->assertSame('ITEM-1', $body['shipments'][0]['item_id']);
         $this->assertSame('Shoes', $body['shipments'][0]['products'][0]['name']);
         $this->assertSame('USD', $body['shipments'][0]['products'][0]['currency']);

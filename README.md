@@ -94,7 +94,7 @@ use Starmile\PartnerSdk\Builder\ShipmentBuilder;
 use Starmile\PartnerSdk\Builder\ProductBuilder;
 
 $order = OrderBuilder::make($serviceId, 'ORD-1001')   // service_id + your order_id
-    ->recipient('Jane Doe', '+994500000000', 'jane@example.com')
+    ->recipient('Jane Doe', '+994500000000', 'jane@example.com', '5AB12C3')  // 4th arg = gov_id (AZ FIN / passport)
     ->deliverToPudo(42)                                // or ->deliverHome($regionId) / ->deliverToLocker($lockerId)
     ->shippingCost(9.90)
     ->addShipment(
