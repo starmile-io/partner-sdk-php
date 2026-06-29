@@ -84,7 +84,9 @@ final class OrderBuilder
     }
 
     /**
-     * Deliver to a region (Home Delivery services). Optionally set the address lines.
+     * Deliver to a region by its id (Home Delivery services). Optionally set the
+     * address lines. Use {@see deliverHomeToRegion()} when you only know the region
+     * NAME — the API resolves a name to its id for you.
      *
      * @return $this
      */
@@ -92,6 +94,24 @@ final class OrderBuilder
     {
         $this->attributes['delivery'] = 'home';
         $this->attributes['region_id'] = (int) $regionId;
+
+        return $this->address($addressFirst, $addressSecond, $zip);
+    }
+
+    /**
+     * Deliver to a region by its NAME or id (Home Delivery services). The API
+     * resolves the value against the destination country by an exact name match
+     * first, then falls back to an id lookup — so a partner that knows the region
+     * only by its human name (e.g. "Abşeron") can send it as-is. Optionally set the
+     * address lines.
+     *
+     * @param  string|int  $region  the destination region name (preferred) or id
+     * @return $this
+     */
+    public function deliverHomeToRegion($region, $addressFirst = null, $addressSecond = null, $zip = null)
+    {
+        $this->attributes['delivery'] = 'home';
+        $this->attributes['region'] = (string) $region;
 
         return $this->address($addressFirst, $addressSecond, $zip);
     }

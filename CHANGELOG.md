@@ -4,6 +4,22 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-06-29
+
+### Added
+- **`OrderBuilder::deliverHomeToRegion($region, ...)`** — deliver a Home Delivery
+  order to a region given its **name** (or id). Partners usually know the
+  destination region by its human name (e.g. `"Abşeron"`), not our internal id;
+  the API resolves the value against the destination country by an exact name
+  match first, then falls back to an id lookup, and stamps the resolved region on
+  the order (this is what lets the order be priced by its destination Tier).
+  `deliverHome($regionId, ...)` (id only) is unchanged.
+
+### Notes
+- The request now accepts a `region` field (name or id) alongside `region_id`
+  (id only). The required-field error for a Home Delivery service is now
+  `"region is required for a Home Delivery service."`
+
 ## [1.2.0] - 2026-06-27
 
 ### Changed

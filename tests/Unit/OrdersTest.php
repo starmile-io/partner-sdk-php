@@ -46,6 +46,28 @@ final class OrdersTest extends TestCase
         $this->assertSame('USD', $body['shipments'][0]['products'][0]['currency']);
     }
 
+    public function testDeliverHomeToRegionSendsTheRegionNameForServerResolution()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(201, array('data' => array('id' => 1, 'tracking_number' => 'SM1')));
+
+        // A partner that only knows the destination region by its human name sends
+        // it as-is; the API resolves it (exact name, then id) to a region id.
+        $order = OrderBuilder::make(7, 'ORD-2')
+            ->deliverHomeToRegion('Abşeron', 'Nizami küç. 12', 'Apt 4', 'AZ1000')
+            ->addShipment(ShipmentBuilder::make('ITEM-1')->addProduct(ProductBuilder::make('Shoes')));
+
+        $this->client($http)->orders()->create($order);
+
+        $body = $http->lastJsonBody();
+        $this->assertSame('home', $body['delivery']);
+        $this->assertSame('Abşeron', $body['region']);
+        $this->assertArrayNotHasKey('region_id', $body);
+        $this->assertSame('Nizami küç. 12', $body['address_first']);
+        $this->assertSame('AZ1000', $body['zip']);
+    }
+
     public function testUpdateShipmentEncodesReferencesInThePath()
     {
         $http = new FakeHttpClient();
