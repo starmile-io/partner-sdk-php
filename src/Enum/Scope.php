@@ -15,7 +15,7 @@ final class Scope
     /** Create orders — POST /api/v1/orders. */
     const ORDERS_CREATE = 'orders:create';
 
-    /** Update a shipment before it is received — PATCH /api/v1/orders/{order}/shipments/{shipment}. */
+    /** Update a parcel before it is received — PATCH /api/v1/orders/{order}/parcels/{parcel}. */
     const ORDERS_UPDATE = 'orders:update';
 
     /** Cancel an order before it is in custody — POST /api/v1/orders/{order}/cancel. */

@@ -8,17 +8,17 @@ use Starmile\PartnerSdk\Builder\OrderBuilder;
  * Order intake and pre-custody management.
  *
  *   POST  /api/v1/orders                                  (scope: orders:create)
- *   PATCH /api/v1/orders/{order}/shipments/{shipment}     (scope: orders:update)
+ *   PATCH /api/v1/orders/{order}/parcels/{parcel}     (scope: orders:update)
  *   POST  /api/v1/orders/{order}/cancel                   (scope: orders:cancel)
  *
- * Orders and shipments are addressed by the partner's OWN references: `{order}` is
- * the `order_id` you sent on create, `{shipment}` is the `item_id` of a shipment.
+ * Orders and parcels are addressed by the partner's OWN references: `{order}` is
+ * the `order_id` you sent on create, `{parcel}` is the `item_id` of a parcel.
  */
 final class Orders extends AbstractResource
 {
     /**
      * Create an order. Accepts either an {@see OrderBuilder} or a raw payload array
-     * matching the API body (`service_id`, `order_id`, `shipments[]`, ...). Returns
+     * matching the API body (`service_id`, `order_id`, `parcels[]`, ...). Returns
      * the created order.
      *
      * @param OrderBuilder|array<string, mixed> $order
@@ -32,19 +32,19 @@ final class Orders extends AbstractResource
     }
 
     /**
-     * Update a not-yet-received shipment (partial). Sending `products` REPLACES the
-     * shipment's full product list. 409 once the shipment has been received.
+     * Update a not-yet-received parcel (partial). Sending `products` REPLACES the
+     * parcel's full product list. 409 once the parcel has been received.
      *
      * @param string                $orderId    The partner's order reference (order_id).
-     * @param string                $itemId     The partner's shipment reference (item_id).
+     * @param string                $itemId     The partner's parcel reference (item_id).
      * @param array<string, mixed>  $changes    Any of: merchant_tracking, package_type,
      *                                           weight_grams, length_mm, width_mm,
      *                                           height_mm, products[].
      * @return array<string, mixed>
      */
-    public function updateShipment($orderId, $itemId, array $changes)
+    public function updateParcel($orderId, $itemId, array $changes)
     {
-        $path = '/api/v1/orders/' . rawurlencode($orderId) . '/shipments/' . rawurlencode($itemId);
+        $path = '/api/v1/orders/' . rawurlencode($orderId) . '/parcels/' . rawurlencode($itemId);
 
         return $this->unwrap($this->connection->patch($path, $changes));
     }

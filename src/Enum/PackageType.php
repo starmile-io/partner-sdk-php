@@ -3,7 +3,7 @@
 namespace Starmile\PartnerSdk\Enum;
 
 /**
- * The optional handling type a shipment may declare. Records-only — it does not
+ * The optional handling type a parcel may declare. Records-only — it does not
  * change routing, but flags special handling at the hub.
  */
 final class PackageType

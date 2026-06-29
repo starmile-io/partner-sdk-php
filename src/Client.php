@@ -28,7 +28,7 @@ use Starmile\PartnerSdk\Retry\RetryPolicy;
 final class Client
 {
     /** The SDK version (sent in the User-Agent). */
-    const VERSION = '1.3.0';
+    const VERSION = '2.0.0';
 
     /** @var Configuration */
     private $configuration;
@@ -130,7 +130,7 @@ final class Client
     }
 
     /**
-     * Order intake, shipment updates, and cancellation
+     * Order intake, parcel updates, and cancellation
      * (scopes: orders:create / orders:update / orders:cancel).
      *
      * @return Orders

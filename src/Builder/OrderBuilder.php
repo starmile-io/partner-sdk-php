@@ -5,7 +5,7 @@ namespace Starmile\PartnerSdk\Builder;
 /**
  * Fluent builder for an order intake payload (POST /api/v1/orders). Required:
  * a `service_id` (one of GET /api/v1/services), an `order_id` (the partner's own
- * order reference), and at least one shipment. The corridor (origin/destination)
+ * order reference), and at least one parcel. The corridor (origin/destination)
  * and delivery type come from the Service; `rate_id` is optional (Finance resolves
  * the rate at the invoice-trigger status).
  */
@@ -14,8 +14,8 @@ final class OrderBuilder
     /** @var array<string, mixed> */
     private $attributes = array();
 
-    /** @var array<int, ShipmentBuilder|array<string, mixed>> */
-    private $shipments = array();
+    /** @var array<int, ParcelBuilder|array<string, mixed>> */
+    private $parcels = array();
 
     /**
      * @param int    $serviceId The Service entity id (drives the flow + corridor).
@@ -197,14 +197,14 @@ final class OrderBuilder
     }
 
     /**
-     * Add a shipment. Accepts a {@see ShipmentBuilder} or a raw array.
+     * Add a parcel. Accepts a {@see ParcelBuilder} or a raw array.
      *
-     * @param ShipmentBuilder|array<string, mixed> $shipment
+     * @param ParcelBuilder|array<string, mixed> $parcel
      * @return $this
      */
-    public function addShipment($shipment)
+    public function addParcel($parcel)
     {
-        $this->shipments[] = $shipment;
+        $this->parcels[] = $parcel;
 
         return $this;
     }
@@ -227,13 +227,13 @@ final class OrderBuilder
      */
     public function toArray()
     {
-        $shipments = array();
-        foreach ($this->shipments as $shipment) {
-            $shipments[] = $shipment instanceof ShipmentBuilder ? $shipment->toArray() : $shipment;
+        $parcels = array();
+        foreach ($this->parcels as $parcel) {
+            $parcels[] = $parcel instanceof ParcelBuilder ? $parcel->toArray() : $parcel;
         }
 
         $payload = $this->attributes;
-        $payload['shipments'] = $shipments;
+        $payload['parcels'] = $parcels;
 
         return $payload;
     }

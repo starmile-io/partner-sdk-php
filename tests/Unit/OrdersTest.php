@@ -5,7 +5,7 @@ namespace Starmile\PartnerSdk\Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Starmile\PartnerSdk\Builder\OrderBuilder;
 use Starmile\PartnerSdk\Builder\ProductBuilder;
-use Starmile\PartnerSdk\Builder\ShipmentBuilder;
+use Starmile\PartnerSdk\Builder\ParcelBuilder;
 use Starmile\PartnerSdk\Client;
 use Starmile\PartnerSdk\Configuration;
 use Starmile\PartnerSdk\Exception\ConflictException;
@@ -23,8 +23,8 @@ final class OrdersTest extends TestCase
         $order = OrderBuilder::make(7, 'ORD-1')
             ->recipient('Jane Doe', '+994500000000', null, '5AB12C3')
             ->deliverToPudo(42)
-            ->addShipment(
-                ShipmentBuilder::make('ITEM-1')
+            ->addParcel(
+                ParcelBuilder::make('ITEM-1')
                     ->merchantTracking('BC-1')
                     ->addProduct(ProductBuilder::make('Shoes')->declaredValue(50, 'USD')->quantity(1))
             );
@@ -41,9 +41,9 @@ final class OrdersTest extends TestCase
         // The recipient government ID is sent as gov_id (was customer_pin).
         $this->assertSame('5AB12C3', $body['gov_id']);
         $this->assertArrayNotHasKey('customer_pin', $body);
-        $this->assertSame('ITEM-1', $body['shipments'][0]['item_id']);
-        $this->assertSame('Shoes', $body['shipments'][0]['products'][0]['name']);
-        $this->assertSame('USD', $body['shipments'][0]['products'][0]['currency']);
+        $this->assertSame('ITEM-1', $body['parcels'][0]['item_id']);
+        $this->assertSame('Shoes', $body['parcels'][0]['products'][0]['name']);
+        $this->assertSame('USD', $body['parcels'][0]['products'][0]['currency']);
     }
 
     public function testDeliverHomeToRegionSendsTheRegionNameForServerResolution()
@@ -56,7 +56,7 @@ final class OrdersTest extends TestCase
         // it as-is; the API resolves it (exact name, then id) to a region id.
         $order = OrderBuilder::make(7, 'ORD-2')
             ->deliverHomeToRegion('Abşeron', 'Nizami küç. 12', 'Apt 4', 'AZ1000')
-            ->addShipment(ShipmentBuilder::make('ITEM-1')->addProduct(ProductBuilder::make('Shoes')));
+            ->addParcel(ParcelBuilder::make('ITEM-1')->addProduct(ProductBuilder::make('Shoes')));
 
         $this->client($http)->orders()->create($order);
 
@@ -68,17 +68,17 @@ final class OrdersTest extends TestCase
         $this->assertSame('AZ1000', $body['zip']);
     }
 
-    public function testUpdateShipmentEncodesReferencesInThePath()
+    public function testUpdateParcelEncodesReferencesInThePath()
     {
         $http = new FakeHttpClient();
         $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
         $http->queueJson(200, array('data' => array('id' => 1, 'status' => 'expected')));
 
-        $this->client($http)->orders()->updateShipment('ORD/1', 'ITEM 2', array('weight_grams' => 1200));
+        $this->client($http)->orders()->updateParcel('ORD/1', 'ITEM 2', array('weight_grams' => 1200));
 
         $call = $http->lastRequest();
         $this->assertSame('PATCH', $call['method']);
-        $this->assertSame('https://api.starmile.app/api/v1/orders/ORD%2F1/shipments/ITEM%202', $call['url']);
+        $this->assertSame('https://api.starmile.app/api/v1/orders/ORD%2F1/parcels/ITEM%202', $call['url']);
         $this->assertSame(array('weight_grams' => 1200), $http->lastJsonBody());
     }
 

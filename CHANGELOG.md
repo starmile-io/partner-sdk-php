@@ -4,6 +4,27 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-06-29
+
+### Changed (BREAKING)
+- The per-item unit under an order is now a **parcel** (was "shipment"), matching
+  the Partner API:
+  - `ShipmentBuilder` → **`ParcelBuilder`** (same fluent API; `make($itemId)`,
+    `addProduct(...)`, ...).
+  - `OrderBuilder::addShipment(...)` → **`addParcel(...)`**; the create-order body
+    now sends `parcels[]` (was `shipments[]`).
+  - `Orders::updateShipment($orderId, $itemId, $changes)` →
+    **`updateParcel(...)`**, which calls
+    `PATCH /api/v1/orders/{order}/parcels/{parcel}` (was `/shipments/{shipment}`).
+- Carrier transport events are **unchanged**: `EventType::SHIPMENT_*`
+  (`shipment.*`) still describe the dispatch shipment handed to the carrier, and
+  the `events:transport` scope is unchanged.
+
+### Migration
+- Rename `ShipmentBuilder` → `ParcelBuilder`, `addShipment` → `addParcel`,
+  `updateShipment` → `updateParcel` in your integration. No change is needed for
+  event reporting.
+
 ## [1.3.0] - 2026-06-29
 
 ### Added

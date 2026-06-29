@@ -3,7 +3,7 @@
 namespace Starmile\PartnerSdk\Builder;
 
 /**
- * Fluent builder for a product (the contents of a shipment). `name` is required;
+ * Fluent builder for a product (the contents of a parcel). `name` is required;
  * everything else is optional declaration data used for customs.
  */
 final class ProductBuilder

@@ -11,7 +11,7 @@ events.
 - **Wide PHP support: 7.1 → 8.4.**
 - **Automatic OAuth2** — tokens are fetched, cached, and refreshed for you.
 - **Typed exceptions** mapped from HTTP status codes.
-- **Fluent builders** for orders, shipments, products, and events, with local
+- **Fluent builders** for orders, parcels, products, and events, with local
   validation of event types and fields before anything hits the network.
 
 > This package is a thin, faithful client over the HTTP API. The HTTP API remains
@@ -71,7 +71,7 @@ scopes on your credential.
 | Resource                | Scope(s)                                                          | Endpoints |
 | ----------------------- | ---------------------------------------------------------------- | --------- |
 | `$starmile->catalogue()`| `catalogue:read`                                                 | `GET /api/v1/services`, `GET /api/v1/rates` |
-| `$starmile->orders()`   | `orders:create`, `orders:update`, `orders:cancel`                | `POST /api/v1/orders`, `PATCH /api/v1/orders/{order}/shipments/{shipment}`, `POST /api/v1/orders/{order}/cancel` |
+| `$starmile->orders()`   | `orders:create`, `orders:update`, `orders:cancel`                | `POST /api/v1/orders`, `PATCH /api/v1/orders/{order}/parcels/{parcel}`, `POST /api/v1/orders/{order}/cancel` |
 | `$starmile->statusPool()`| `status:read`                                                   | `GET /api/v1/partner/changes` |
 | `$starmile->events()`   | `events:transport`, `events:pudo`, `events:customs`, `leg:handoff`| `POST /api/v1/partner/events` |
 
@@ -90,15 +90,15 @@ optional.
 
 ```php
 use Starmile\PartnerSdk\Builder\OrderBuilder;
-use Starmile\PartnerSdk\Builder\ShipmentBuilder;
+use Starmile\PartnerSdk\Builder\ParcelBuilder;
 use Starmile\PartnerSdk\Builder\ProductBuilder;
 
 $order = OrderBuilder::make($serviceId, 'ORD-1001')   // service_id + your order_id
     ->recipient('Jane Doe', '+994500000000', 'jane@example.com', '5AB12C3')  // 4th arg = gov_id (AZ FIN / passport)
     ->deliverToPudo(42)                                // or ->deliverHome($regionId) / ->deliverToLocker($lockerId)
     ->shippingCost(9.90)
-    ->addShipment(
-        ShipmentBuilder::make('ITEM-1')                // your per-item reference
+    ->addParcel(
+        ParcelBuilder::make('ITEM-1')                // your per-item reference
             ->merchantTracking('BARCODE-1')            // the physical sticker code
             ->weightGrams(1200)
             ->addProduct(
@@ -113,12 +113,12 @@ $created = $starmile->orders()->create($order);
 echo $created['tracking_number'];
 ```
 
-Orders and shipments are addressed by **your own references** afterwards — the
+Orders and parcels are addressed by **your own references** afterwards — the
 `order_id` you sent, and a shipment's `item_id`:
 
 ```php
 // Update a shipment that has not been received yet (partial; `products` replaces the list).
-$starmile->orders()->updateShipment('ORD-1001', 'ITEM-1', [
+$starmile->orders()->updateParcel('ORD-1001', 'ITEM-1', [
     'weight_grams' => 1500,
     'merchant_tracking' => 'BARCODE-1B',
 ]);
