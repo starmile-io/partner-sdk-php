@@ -26,7 +26,6 @@ final class EventType
     const PARCEL_ACCEPTED = 'parcel.accepted';
     const PARCEL_RACKED_AT_HUB = 'parcel.parcel_racked_at_hub';
     const PARCEL_RECEIVED = 'parcel.received';
-    const PARCEL_ACCEPTED_LM = 'parcel.accepted_lm';
     const PARCEL_DELIVERED = 'parcel.delivered';
     const PARCEL_TIMEOUT = 'parcel.timeout';
     const PARCEL_DROPOFF_CANCELLED = 'parcel.dropoff_cancelled';
@@ -54,10 +53,9 @@ final class EventType
         self::SHIPMENT_DELIVERED => array('recipient_name', 'signed_by', 'proof_of_delivery'),
         self::SHIPMENT_DELIVERY_FAILED => array('reason', 'attempt'),
         self::SHIPMENT_RETURNED => array('reason'),
-        self::PARCEL_ACCEPTED => array('point_code'),
+        self::PARCEL_ACCEPTED => array('point_code', 'shelf'),
         self::PARCEL_RACKED_AT_HUB => array('point_code'),
         self::PARCEL_RECEIVED => array('point_code'),
-        self::PARCEL_ACCEPTED_LM => array('point_code', 'shelf'),
         self::PARCEL_DELIVERED => array('recipient_name', 'signed_by', 'proof_of_delivery'),
         self::PARCEL_TIMEOUT => array(),
         self::PARCEL_DROPOFF_CANCELLED => array('reason'),

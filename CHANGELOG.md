@@ -4,6 +4,17 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-06-30
+
+### Changed (BREAKING)
+- The two PUDO accept events are merged into one. **`EventType::PARCEL_ACCEPTED_LM`
+  (`parcel.accepted_lm`) is removed** — send **`EventType::PARCEL_ACCEPTED`
+  (`parcel.accepted`)** for any PUDO acceptance. `parcel.accepted` now also accepts
+  the optional **`shelf`** field (previously only on `accepted_lm`); its full data
+  set is `note`, `point_code`, `shelf`. This mirrors the server: a single
+  `accepted_at_pudo` step whose hold window follows the order's service direction
+  (delivery vs return), not a first-mile/last-mile split.
+
 ## [2.1.0] - 2026-06-30
 
 ### Changed
