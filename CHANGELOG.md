@@ -4,6 +4,19 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-06-30
+
+### Changed
+- The order-create body no longer sends a `delivery` field. The delivery channel
+  (home / pudo / locker) is a property of the chosen Service (its `delivery_type`),
+  not something the partner sends — pick the Service whose channel you want and
+  provide the matching destination id. The fluent builder is unchanged:
+  `deliverHome($regionId)` / `deliverHomeToRegion($region)` / `deliverToPudo($pudoId)`
+  / `deliverToLocker($lockerId)` still set the destination id; they just no longer
+  emit the redundant `delivery` key.
+- `Enum\DeliveryMethod` is retained as the canonical channel vocabulary
+  (`home` / `pudo` / `locker`) but is now informational only.
+
 ## [2.0.0] - 2026-06-29
 
 ### Changed (BREAKING)

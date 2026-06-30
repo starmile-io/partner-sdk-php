@@ -92,7 +92,6 @@ final class OrderBuilder
      */
     public function deliverHome($regionId, $addressFirst = null, $addressSecond = null, $zip = null)
     {
-        $this->attributes['delivery'] = 'home';
         $this->attributes['region_id'] = (int) $regionId;
 
         return $this->address($addressFirst, $addressSecond, $zip);
@@ -110,7 +109,6 @@ final class OrderBuilder
      */
     public function deliverHomeToRegion($region, $addressFirst = null, $addressSecond = null, $zip = null)
     {
-        $this->attributes['delivery'] = 'home';
         $this->attributes['region'] = (string) $region;
 
         return $this->address($addressFirst, $addressSecond, $zip);
@@ -123,7 +121,6 @@ final class OrderBuilder
      */
     public function deliverToPudo($pudoId)
     {
-        $this->attributes['delivery'] = 'pudo';
         $this->attributes['pudo_id'] = (int) $pudoId;
 
         return $this;
@@ -136,7 +133,6 @@ final class OrderBuilder
      */
     public function deliverToLocker($lockerId)
     {
-        $this->attributes['delivery'] = 'locker';
         $this->attributes['locker_id'] = (int) $lockerId;
 
         return $this;

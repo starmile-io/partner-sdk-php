@@ -36,7 +36,8 @@ final class OrdersTest extends TestCase
         $body = $http->lastJsonBody();
         $this->assertSame(7, $body['service_id']);
         $this->assertSame('ORD-1', $body['order_id']);
-        $this->assertSame('pudo', $body['delivery']);
+        // The delivery channel is bound to the Service (delivery_type), not sent.
+        $this->assertArrayNotHasKey('delivery', $body);
         $this->assertSame(42, $body['pudo_id']);
         // The recipient government ID is sent as gov_id (was customer_pin).
         $this->assertSame('5AB12C3', $body['gov_id']);
@@ -61,7 +62,7 @@ final class OrdersTest extends TestCase
         $this->client($http)->orders()->create($order);
 
         $body = $http->lastJsonBody();
-        $this->assertSame('home', $body['delivery']);
+        $this->assertArrayNotHasKey('delivery', $body);
         $this->assertSame('Abşeron', $body['region']);
         $this->assertArrayNotHasKey('region_id', $body);
         $this->assertSame('Nizami küç. 12', $body['address_first']);

@@ -3,11 +3,12 @@
 namespace Starmile\PartnerSdk\Enum;
 
 /**
- * The delivery destination method an order may target. The method is bound to the
- * Service's type — Home Delivery → `home` (region_id), Pudo Delivery → `pudo`
- * (pudo_id), Locker → `locker` (locker_id). Clearance / Cross-Docking services
- * take no destination. `delivery` is optional on intake; when sent it is validated
- * against the Service's type.
+ * The delivery channel of a Service — `home` (region_id), `pudo` (pudo_id) or
+ * `locker` (locker_id). It is a property of the chosen Service (its delivery_type),
+ * NOT a field the partner sends on an order: pick the Service whose channel you
+ * want and provide the matching destination id (region / pudo_id / locker_id).
+ * `return` / `clearance` / `cross_docking` services have no channel. Kept as the
+ * canonical channel vocabulary for reference.
  */
 final class DeliveryMethod
 {
