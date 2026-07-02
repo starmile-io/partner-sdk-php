@@ -33,8 +33,9 @@ final class Orders extends AbstractResource
     }
 
     /**
-     * Download the printable parcel label(s) as a single PDF (one scannable
-     * Code-128 barcode per package). Address it by EITHER the `order_id` you sent
+     * Download the printable parcel label(s) as a single PDF — each parcel rendered
+     * from the org's default parcel label template, one page per package. Address it
+     * by EITHER the `order_id` you sent
      * on create (a label for every parcel of that order) OR a single parcel's
      * `merchant_tracking` (that one parcel). Returns the raw PDF bytes — write them
      * to a file or stream them to the client. Scope: `labels:read`.

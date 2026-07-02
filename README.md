@@ -129,10 +129,10 @@ $starmile->orders()->cancel('ORD-1001', 'customer changed mind');
 
 ### Parcel labels (PDF)
 
-Download the printable parcel label(s) as a single PDF — one scannable Code-128
-barcode per package. Address it by your `order_id` (a label for every parcel) or a
-single parcel's `merchant_tracking`. The method returns the raw PDF bytes. Scope:
-`labels:read`.
+Download the printable parcel label(s) as a single PDF — each parcel rendered from
+your organization's default parcel label template, one page per package. Address it
+by your `order_id` (a label for every parcel) or a single parcel's
+`merchant_tracking`. The method returns the raw PDF bytes. Scope: `labels:read`.
 
 ```php
 // Every parcel of an order, as one PDF.

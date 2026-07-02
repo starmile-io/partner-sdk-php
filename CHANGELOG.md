@@ -4,6 +4,14 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.1] - 2026-07-02
+
+### Changed
+- **`orders()->label()` now returns the org's default parcel label template** —
+  each parcel is rendered from the organization's configured parcel template (the
+  full sticker), one page per package, instead of a bare Code-128 barcode. No code
+  change is required: same method, same `labels:read` scope, same PDF bytes.
+
 ## [4.0.0] - 2026-07-02
 
 ### Changed
