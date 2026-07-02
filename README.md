@@ -127,6 +127,21 @@ $starmile->orders()->updateParcel('ORD-1001', 'ITEM-1', [
 $starmile->orders()->cancel('ORD-1001', 'customer changed mind');
 ```
 
+### Parcel labels (PDF)
+
+Download the printable parcel label(s) as a single PDF — one scannable Code-128
+barcode per package. Address it by your `order_id` (a label for every parcel) or a
+single parcel's `merchant_tracking`. The method returns the raw PDF bytes. Scope:
+`labels:read`.
+
+```php
+// Every parcel of an order, as one PDF.
+file_put_contents('labels.pdf', $starmile->orders()->label('ORD-1001'));
+
+// A single parcel, by its merchant tracking (barcode).
+$pdf = $starmile->orders()->label('ORD-1001', 'BARCODE-1');
+```
+
 ### Status pool (replaces webhooks)
 
 Poll the pool with the cursor you last processed; you receive every change after

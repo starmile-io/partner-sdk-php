@@ -112,6 +112,35 @@ final class OrdersTest extends TestCase
         }
     }
 
+    public function testLabelByOrderIdReturnsRawPdfBytes()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueRaw(200, '%PDF-1.7 fake-bytes', array('Content-Type' => 'application/pdf'));
+
+        $pdf = $this->client($http)->orders()->label('ORD-1001');
+
+        $this->assertSame('%PDF-1.7 fake-bytes', $pdf);
+
+        $call = $http->lastRequest();
+        $this->assertSame('GET', $call['method']);
+        $this->assertStringContainsString('/api/v1/orders/label?order_id=ORD-1001', $call['url']);
+        $this->assertSame('application/pdf', $call['headers']['Accept']);
+    }
+
+    public function testLabelByMerchantTrackingIgnoresOrderId()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueRaw(200, '%PDF-1.7', array('Content-Type' => 'application/pdf'));
+
+        $this->client($http)->orders()->label('ORD-1001', 'BARCODE-1');
+
+        $call = $http->lastRequest();
+        $this->assertStringContainsString('merchant_tracking=BARCODE-1', $call['url']);
+        $this->assertStringNotContainsString('order_id', $call['url']);
+    }
+
     private function client(FakeHttpClient $http)
     {
         return new Client(new Configuration('id', 'secret', array('http_client' => $http, 'max_attempts' => 1)));

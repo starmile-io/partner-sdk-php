@@ -8,6 +8,7 @@ use Starmile\PartnerSdk\Builder\OrderBuilder;
  * Order intake and pre-custody management.
  *
  *   POST  /api/v1/orders                                  (scope: orders:create)
+ *   GET   /api/v1/orders/label                             (scope: labels:read)
  *   PATCH /api/v1/orders/{order}/parcels/{parcel}     (scope: orders:update)
  *   POST  /api/v1/orders/{order}/cancel                   (scope: orders:cancel)
  *
@@ -29,6 +30,27 @@ final class Orders extends AbstractResource
         $payload = $order instanceof OrderBuilder ? $order->toArray() : $order;
 
         return $this->unwrap($this->connection->post('/api/v1/orders', $payload));
+    }
+
+    /**
+     * Download the printable parcel label(s) as a single PDF (one scannable
+     * Code-128 barcode per package). Address it by EITHER the `order_id` you sent
+     * on create (a label for every parcel of that order) OR a single parcel's
+     * `merchant_tracking` (that one parcel). Returns the raw PDF bytes — write them
+     * to a file or stream them to the client. Scope: `labels:read`.
+     *
+     * @param string      $orderId          The partner's order reference (order_id).
+     * @param string|null $merchantTracking  A single parcel's merchant tracking; when
+     *                                        given, $orderId is ignored.
+     * @return string the raw PDF bytes
+     */
+    public function label($orderId, $merchantTracking = null)
+    {
+        $query = $merchantTracking !== null
+            ? array('merchant_tracking' => $merchantTracking)
+            : array('order_id' => $orderId);
+
+        return $this->connection->getRaw('/api/v1/orders/label', $query, 'application/pdf');
     }
 
     /**

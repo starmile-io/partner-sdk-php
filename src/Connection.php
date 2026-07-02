@@ -122,6 +122,57 @@ final class Connection
     }
 
     /**
+     * Perform a GET (with retries) and return the raw response body — for binary
+     * responses such as a PDF. Same 401-refresh + typed-error behaviour as
+     * {@see request}; on a non-2xx the JSON error body is still decoded into the
+     * thrown exception. `$accept` sets the Accept header (defaults to any type).
+     *
+     * @param array<string, mixed> $query
+     * @return string the raw response body
+     */
+    public function getRaw($path, array $query = array(), $accept = '*/*')
+    {
+        $attempt = 0;
+
+        while (true) {
+            $attempt++;
+
+            try {
+                return $this->attemptRaw($path, $query, $accept);
+            } catch (StarmileException $e) {
+                if (!$this->retryPolicy->shouldRetry('GET', $e, $attempt)) {
+                    throw $e;
+                }
+
+                $retryAfter = $e instanceof RateLimitException ? $e->getRetryAfter() : null;
+                $this->sleeper->sleepMs($this->retryPolicy->delayFor($attempt, $retryAfter));
+            }
+        }
+    }
+
+    /**
+     * A single raw GET attempt: dispatch, refresh-and-retry once on 401, and raise
+     * a typed exception on a non-2xx status (decoding the JSON error body).
+     *
+     * @param array<string, mixed> $query
+     * @return string
+     */
+    private function attemptRaw($path, array $query, $accept)
+    {
+        $response = $this->dispatch('GET', $path, $query, null, false, $accept);
+
+        if ($response->getStatusCode() === 401) {
+            $response = $this->dispatch('GET', $path, $query, null, true, $accept);
+        }
+
+        if (!$response->isSuccessful()) {
+            throw $this->toException($response, $this->decode($response));
+        }
+
+        return $response->getBody();
+    }
+
+    /**
      * A single attempt: dispatch, refresh-and-retry once on 401, decode, and
      * raise a typed exception on a non-2xx status.
      *
@@ -150,9 +201,10 @@ final class Connection
     /**
      * @param array<string, mixed>      $query
      * @param array<string, mixed>|null $body
+     * @param string                    $accept  the Accept header (JSON by default)
      * @return RawResponse
      */
-    private function dispatch($method, $path, array $query, $body, $forceRefresh)
+    private function dispatch($method, $path, array $query, $body, $forceRefresh, $accept = 'application/json')
     {
         $token = $forceRefresh ? $this->tokenManager->refresh() : $this->tokenManager->getToken();
 
@@ -163,7 +215,7 @@ final class Connection
 
         $headers = array(
             'Authorization' => 'Bearer ' . $token,
-            'Accept' => 'application/json',
+            'Accept' => $accept,
             'User-Agent' => $this->userAgent,
         );
 

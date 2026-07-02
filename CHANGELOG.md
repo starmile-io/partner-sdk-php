@@ -6,6 +6,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [4.0.0] - 2026-07-02
 
+### Added
+- **`Orders::label($orderId, $merchantTracking = null)`** — download the printable
+  parcel label(s) as a single PDF (one scannable Code-128 barcode per package),
+  addressed by your `order_id` (every parcel) or a single parcel's
+  `merchant_tracking`. Returns the raw PDF bytes. New endpoint
+  `GET /api/v1/orders/label` and scope **`Scope::LABELS_READ`** (`labels:read`),
+  granted to sender credentials by default. Backed by `Connection::getRaw()` for
+  binary responses.
+
 ### Removed (BREAKING)
 - **`OrderBuilder::rateId()` is removed.** The Partner API no longer accepts a
   partner-supplied rate on order creation — Starmile resolves the billing rate

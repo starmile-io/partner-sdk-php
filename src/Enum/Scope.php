@@ -27,6 +27,9 @@ final class Scope
     /** Poll the status pool — GET /api/v1/partner/changes. */
     const STATUS_READ = 'status:read';
 
+    /** Download a parcel label PDF — GET /api/v1/orders/label. */
+    const LABELS_READ = 'labels:read';
+
     /** Report transport (carrier) events — shipment.*. */
     const EVENTS_TRANSPORT = 'events:transport';
 
@@ -52,6 +55,7 @@ final class Scope
             self::ORDERS_CANCEL,
             self::CATALOGUE_READ,
             self::STATUS_READ,
+            self::LABELS_READ,
             self::EVENTS_TRANSPORT,
             self::EVENTS_PUDO,
             self::EVENTS_CUSTOMS,
