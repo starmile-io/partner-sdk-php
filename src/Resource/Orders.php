@@ -22,6 +22,10 @@ final class Orders extends AbstractResource
      * matching the API body (`service_id`, `order_id`, `parcels[]`, ...). Returns
      * the created order.
      *
+     * Each parcel's `merchant_tracking` must be unique — reusing one that already
+     * exists (or repeating it across parcels in the same order) is rejected `422`,
+     * so re-sending an order never creates a duplicate.
+     *
      * @param OrderBuilder|array<string, mixed> $order
      * @return array<string, mixed>
      */
