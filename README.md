@@ -85,8 +85,8 @@ $rates    = $starmile->catalogue()->rates();    // the rates bound to your partn
 ### Orders
 
 Build an order with the fluent builders (or pass a raw array matching the API
-body). The corridor and delivery type come from the **Service**; `rate_id` is
-optional.
+body). The corridor and delivery type come from the **Service**; you do not send a
+rate — Starmile resolves the billing rate automatically.
 
 ```php
 use Starmile\PartnerSdk\Builder\OrderBuilder;

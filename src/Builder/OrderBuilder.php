@@ -5,9 +5,9 @@ namespace Starmile\PartnerSdk\Builder;
 /**
  * Fluent builder for an order intake payload (POST /api/v1/orders). Required:
  * a `service_id` (one of GET /api/v1/services), an `order_id` (the partner's own
- * order reference), and at least one parcel. The corridor (origin/destination)
- * and delivery type come from the Service; `rate_id` is optional (Finance resolves
- * the rate at the invoice-trigger status).
+ * order reference), and at least one parcel. The corridor (origin/destination) and
+ * delivery type come from the Service; there is no partner-supplied rate — Finance
+ * resolves the billing rate internally at the invoice-trigger status.
  */
 final class OrderBuilder
 {
@@ -33,18 +33,6 @@ final class OrderBuilder
     public static function make($serviceId, $orderId)
     {
         return new self($serviceId, $orderId);
-    }
-
-    /**
-     * Optional Rate id (validated against the Service + credential when sent).
-     *
-     * @return $this
-     */
-    public function rateId($rateId)
-    {
-        $this->attributes['rate_id'] = (int) $rateId;
-
-        return $this;
     }
 
     /**

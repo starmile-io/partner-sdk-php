@@ -4,6 +4,16 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-07-02
+
+### Removed (BREAKING)
+- **`OrderBuilder::rateId()` is removed.** The Partner API no longer accepts a
+  partner-supplied rate on order creation — Starmile resolves the billing rate
+  internally from the order context (service + partner + corridor + direction) and
+  bills at the rate's configured trigger status. Drop any `->rateId(...)` call; the
+  corridor and delivery type already come from the Service. A legacy `rate_id` left
+  in a raw body is ignored by the server (not an error).
+
 ## [3.0.0] - 2026-06-30
 
 ### Changed (BREAKING)
