@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [4.0.0] - 2026-07-02
 
+### Changed
+- **`GET /api/v1/services` now lists only the services the partner is contracted
+  for** — those it holds an active bound rate on (previously every service the
+  operating entity ran). Ordering a service with no bound rate is rejected `422`.
+  No SDK API change; `catalogue()->services()` simply returns the scoped list.
+
 ### Added
 - **`Orders::label($orderId, $merchantTracking = null)`** — download the printable
   parcel label(s) as a single PDF (one scannable Code-128 barcode per package),
