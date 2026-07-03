@@ -53,24 +53,24 @@ final class OrdersTest extends TestCase
         $this->assertSame('USD', $body['parcels'][0]['products'][0]['currency']);
     }
 
-    public function testDeliverHomeToRegionSendsTheRegionNameForServerResolution()
+    public function testDeliverHomeSendsPartnerParentAndRegionRefsForMapping()
     {
         $http = new FakeHttpClient();
         $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
         $http->queueJson(201, array('data' => array('id' => 1, 'tracking_number' => 'SM1')));
 
-        // The partner addresses the destination by its own reference — the parent
-        // region NAME + their leaf region id — which Starmile maps, per partner, to
-        // one of its regions.
+        // The partner addresses the destination by its own reference — its parent
+        // region id + its leaf region id — which Starmile maps, per partner, to one
+        // of its regions.
         $order = OrderBuilder::make(7, 'ORD-2')
-            ->deliverHome('Baku', '2', 'Nizami küç. 12', 'Apt 4', 'AZ1000')
+            ->deliverHome('1', '2', 'Nizami küç. 12', 'Apt 4', 'AZ1000')
             ->addParcel(ParcelBuilder::make('ITEM-1')->addProduct(ProductBuilder::make('Shoes')));
 
         $this->client($http)->orders()->create($order);
 
         $body = $http->lastJsonBody();
         $this->assertArrayNotHasKey('delivery', $body);
-        $this->assertSame('Baku', $body['parent_region']);
+        $this->assertSame('1', $body['parent_region']);
         $this->assertSame('2', $body['region']);
         $this->assertArrayNotHasKey('region_id', $body);
         $this->assertSame('Nizami küç. 12', $body['address_first']);

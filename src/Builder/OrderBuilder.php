@@ -73,13 +73,13 @@ final class OrderBuilder
 
     /**
      * Deliver to a region (Home Delivery services). You address the destination by
-     * YOUR OWN reference — the region's parent region NAME plus your leaf region
-     * id/code — which Starmile maps, per partner, to one of its regions. Both are
-     * required; the parent disambiguates a leaf that repeats across parents. Have
-     * an operator map your regions in Starmile first (an unmapped reference is
-     * rejected). Optionally set the address lines.
+     * YOUR OWN reference — your parent region id/code plus your leaf region id/code
+     * — which Starmile maps, per partner, to one of its regions. Both are required;
+     * the parent disambiguates a leaf that repeats across parents. Have an operator
+     * map your regions in Starmile first (an unmapped reference is rejected).
+     * Optionally set the address lines.
      *
-     * @param  string      $parentRegion  the parent region NAME (e.g. "Baku")
+     * @param  string|int  $parentRegion  your parent region id/code (e.g. "1")
      * @param  string|int  $region        your leaf region id/code (e.g. "2")
      * @return $this
      */
