@@ -32,8 +32,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `orders()->label($merchantTracking)` takes a single argument — the parcel's
   `merchant_tracking`. The previous `label($orderId, $merchantTracking)` signature and
   the whole-order (`order_id`) form are **removed**: a label is always for one parcel.
-- **Added `orders()->labelByItemId($itemId)`** to address the parcel by your own
-  `item_id` (the per-parcel reference you sent on create) instead.
+- **Added `orders()->labelByParcelId($parcelId)`** to address the parcel by our
+  parcel id (the `items[].parcel_id` returned on create) instead.
 
 ## [4.0.1] - 2026-07-02
 

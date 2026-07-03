@@ -135,16 +135,16 @@ final class OrdersTest extends TestCase
         $this->assertSame('application/pdf', $call['headers']['Accept']);
     }
 
-    public function testLabelByItemIdSendsTheItemId()
+    public function testLabelByParcelIdSendsTheParcelId()
     {
         $http = new FakeHttpClient();
         $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
         $http->queueRaw(200, '%PDF-1.7', array('Content-Type' => 'application/pdf'));
 
-        $this->client($http)->orders()->labelByItemId('PKG-1');
+        $this->client($http)->orders()->labelByParcelId('STM0000000121');
 
         $call = $http->lastRequest();
-        $this->assertStringContainsString('item_id=PKG-1', $call['url']);
+        $this->assertStringContainsString('parcel_id=STM0000000121', $call['url']);
         $this->assertStringNotContainsString('merchant_tracking', $call['url']);
         $this->assertStringNotContainsString('order_id', $call['url']);
     }

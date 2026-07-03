@@ -133,15 +133,15 @@ $starmile->orders()->cancel('ORD-1001', 'customer changed mind');
 
 Download a SINGLE parcel's label as a PDF, rendered from your organization's default
 parcel label template. Address the parcel by its `merchant_tracking` (sticker code) or
-its `item_id` (your per-parcel reference). The method returns the raw PDF bytes. Scope:
+its `parcel_id` (our parcel id, returned as items[].parcel_id on create). The method returns the raw PDF bytes. Scope:
 `labels:read`.
 
 ```php
 // By merchant_tracking (sticker code).
 file_put_contents('label.pdf', $starmile->orders()->label('BARCODE-1'));
 
-// By item_id (your per-parcel reference).
-$pdf = $starmile->orders()->labelByItemId('PKG-1');
+// By parcel_id (our parcel id, from items[].parcel_id on create).
+$pdf = $starmile->orders()->labelByParcelId('STM0000000121');
 ```
 
 ### Status pool (replaces webhooks)

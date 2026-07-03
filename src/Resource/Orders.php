@@ -46,8 +46,8 @@ final class Orders extends AbstractResource
      * (the barcode you sent on create). Returns the raw PDF bytes — write them to a
      * file or stream them to the client. Scope: `labels:read`.
      *
-     * To address a parcel by your own item_id instead, use
-     * {@see self::labelByItemId()}.
+     * To address a parcel by our parcel id instead, use
+     * {@see self::labelByParcelId()}.
      *
      * @param string $merchantTracking The parcel's merchant tracking (sticker code).
      * @return string the raw PDF bytes
@@ -62,17 +62,18 @@ final class Orders extends AbstractResource
     }
 
     /**
-     * Download a SINGLE parcel's label PDF, addressed by its `item_id` — the
-     * per-parcel reference you sent on create. Scope: `labels:read`.
+     * Download a SINGLE parcel's label PDF, addressed by its `parcel_id` — our parcel
+     * id, the value returned as `items[].parcel_id` when you create the order. Scope:
+     * `labels:read`.
      *
-     * @param string $itemId The parcel's item_id (e.g. PKG-1).
+     * @param string $parcelId Our parcel id (e.g. STM0000000121).
      * @return string the raw PDF bytes
      */
-    public function labelByItemId($itemId)
+    public function labelByParcelId($parcelId)
     {
         return $this->connection->getRaw(
             '/api/v1/orders/label',
-            array('item_id' => $itemId),
+            array('parcel_id' => $parcelId),
             'application/pdf'
         );
     }
