@@ -75,8 +75,9 @@ final class Orders extends AbstractResource
     }
 
     /**
-     * Update a not-yet-received parcel (partial). Sending `products` REPLACES the
-     * parcel's full product list. 409 once the parcel has been received.
+     * Update a parcel while its order is still at the flow's FIRST step (partial).
+     * Sending `products` REPLACES the parcel's full product list. 409 once the order
+     * has moved past its first step (e.g. the parcel has been received).
      *
      * @param string                $orderId    The partner's order reference (order_id).
      * @param string                $itemId     The partner's parcel reference (item_id).
@@ -93,8 +94,8 @@ final class Orders extends AbstractResource
     }
 
     /**
-     * Cancel an order while it is still in a pre-custody waiting status. 409 once
-     * any package is in our custody.
+     * Cancel an order while it is still at its flow's FIRST step. 409 once any
+     * package has moved past the first step (e.g. been received or handed to a carrier).
      *
      * @param string      $orderId The partner's order reference (order_id).
      * @param string|null $reason  Optional free-text cancellation reason.

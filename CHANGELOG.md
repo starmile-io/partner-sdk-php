@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [5.0.0] - 2026-07-03
 
+### Changed
+- **Update and cancel are allowed only at the order's flow first step.**
+  `orders()->updateParcel()` and `orders()->cancel()` now return `409` once the
+  order has moved past its flow's first step (previously "once received / in
+  custody"). No SDK code change — the same calls, a slightly stricter server rule.
+
 ### Changed (BREAKING)
 - **The parcel label endpoint is now strictly one parcel per call.**
   `orders()->label($merchantTracking)` now takes a single argument — the parcel's
