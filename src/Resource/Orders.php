@@ -37,25 +37,41 @@ final class Orders extends AbstractResource
     }
 
     /**
-     * Download the printable parcel label(s) as a single PDF — each parcel rendered
-     * from the org's default parcel label template, one page per package. Address it
-     * by EITHER the `order_id` you sent
-     * on create (a label for every parcel of that order) OR a single parcel's
-     * `merchant_tracking` (that one parcel). Returns the raw PDF bytes — write them
-     * to a file or stream them to the client. Scope: `labels:read`.
+     * Download a SINGLE parcel's printable label as a PDF, rendered from the org's
+     * default parcel label template. Addressed by the parcel's `merchant_tracking`
+     * (the barcode you sent on create). Returns the raw PDF bytes — write them to a
+     * file or stream them to the client. Scope: `labels:read`.
      *
-     * @param string      $orderId          The partner's order reference (order_id).
-     * @param string|null $merchantTracking  A single parcel's merchant tracking; when
-     *                                        given, $orderId is ignored.
+     * To address a parcel by its Starmile tracking number instead, use
+     * {@see self::labelByParcelId()}.
+     *
+     * @param string $merchantTracking The parcel's merchant tracking (barcode).
      * @return string the raw PDF bytes
      */
-    public function label($orderId, $merchantTracking = null)
+    public function label($merchantTracking)
     {
-        $query = $merchantTracking !== null
-            ? array('merchant_tracking' => $merchantTracking)
-            : array('order_id' => $orderId);
+        return $this->connection->getRaw(
+            '/api/v1/orders/label',
+            array('merchant_tracking' => $merchantTracking),
+            'application/pdf'
+        );
+    }
 
-        return $this->connection->getRaw('/api/v1/orders/label', $query, 'application/pdf');
+    /**
+     * Download a SINGLE parcel's label PDF, addressed by its `parcel_id` — the
+     * Starmile tracking number (`tracking_number`) returned on create. Scope:
+     * `labels:read`.
+     *
+     * @param string $parcelId The parcel's Starmile tracking number (e.g. STM0000000069).
+     * @return string the raw PDF bytes
+     */
+    public function labelByParcelId($parcelId)
+    {
+        return $this->connection->getRaw(
+            '/api/v1/orders/label',
+            array('parcel_id' => $parcelId),
+            'application/pdf'
+        );
     }
 
     /**

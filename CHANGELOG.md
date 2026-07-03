@@ -4,6 +4,17 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-07-03
+
+### Changed (BREAKING)
+- **The parcel label endpoint is now strictly one parcel per call.**
+  `orders()->label($merchantTracking)` now takes a single argument — the parcel's
+  `merchant_tracking` (barcode). The previous `label($orderId, $merchantTracking)`
+  signature and the whole-order (`order_id`) form are **removed**: a label is always
+  for exactly one parcel.
+- **Added `orders()->labelByParcelId($parcelId)`** to address the parcel by its
+  Starmile tracking number (the `tracking_number` returned on create) instead.
+
 ## [4.0.1] - 2026-07-02
 
 ### Changed
