@@ -24,17 +24,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `partner_tracking` (your own per-item reference — the `item_id` you send on create,
   formerly the parcel's `tracking`). The request field on `ParcelBuilder` /
   `create()` is still `item_id`; it is echoed back on the parcel as `partner_tracking`.
-- **`orders()->create()` now returns only the order_id.** The create response is
-  `['order_id' => 'STM…']` (the created order's Starmile tracking number) instead of
-  the full order object. Use it as the `order_id` on the status, label and management
-  endpoints; address parcels by your own `merchant_tracking`.
+- **`orders()->create()` returns a trimmed response — `order_id` + `items`.** Instead
+  of the full order object, the response is `['order_id' => 'STM…', 'items' => [...]]`:
+  the order's Starmile tracking number, plus one entry per parcel mapping your `item_id`
+  (as sent, or null) to `parcel_id` (our parcel's Starmile tracking number).
 - **The parcel label endpoint is now strictly one parcel per call.**
-  `orders()->label($merchantTracking)` now takes a single argument — the parcel's
-  `merchant_tracking` (barcode). The previous `label($orderId, $merchantTracking)`
-  signature and the whole-order (`order_id`) form are **removed**: a label is always
-  for exactly one parcel.
-- **Added `orders()->labelByParcelId($parcelId)`** to address the parcel by its
-  Starmile tracking number (the `tracking_number` returned on create) instead.
+  `orders()->label($merchantTracking)` takes a single argument — the parcel's
+  `merchant_tracking`. The previous `label($orderId, $merchantTracking)` signature and
+  the whole-order (`order_id`) form are **removed**: a label is always for one parcel.
+- **Added `orders()->labelByItemId($itemId)`** to address the parcel by your own
+  `item_id` (the per-parcel reference you sent on create) instead.
 
 ## [4.0.1] - 2026-07-02
 

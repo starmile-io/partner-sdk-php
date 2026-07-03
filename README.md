@@ -110,7 +110,8 @@ $order = OrderBuilder::make($serviceId, 'ORD-1001')   // service_id + your order
     );
 
 $created = $starmile->orders()->create($order);
-echo $created['order_id'];    // STM…
+echo $created['order_id'];              // STM… (our order id)
+echo $created['items'][0]['parcel_id']; // STM… (our parcel id for your item_id)
 ```
 
 Orders and parcels are addressed by **your own references** afterwards — the
@@ -131,16 +132,16 @@ $starmile->orders()->cancel('ORD-1001', 'customer changed mind');
 ### Parcel labels (PDF)
 
 Download a SINGLE parcel's label as a PDF, rendered from your organization's default
-parcel label template. Address the parcel by its `merchant_tracking` (barcode) or its
-`parcel_id` (the Starmile tracking number returned on create). The method returns the
-raw PDF bytes. Scope: `labels:read`.
+parcel label template. Address the parcel by its `merchant_tracking` (sticker code) or
+its `item_id` (your per-parcel reference). The method returns the raw PDF bytes. Scope:
+`labels:read`.
 
 ```php
-// By merchant_tracking (barcode).
+// By merchant_tracking (sticker code).
 file_put_contents('label.pdf', $starmile->orders()->label('BARCODE-1'));
 
-// By parcel_id (the Starmile tracking number).
-$pdf = $starmile->orders()->labelByParcelId('STM0000000069');
+// By item_id (your per-parcel reference).
+$pdf = $starmile->orders()->labelByItemId('PKG-1');
 ```
 
 ### Status pool (replaces webhooks)

@@ -20,9 +20,10 @@ final class Orders extends AbstractResource
     /**
      * Create an order. Accepts either an {@see OrderBuilder} or a raw payload array
      * matching the API body (`service_id`, `order_id`, `parcels[]`, ...). Returns the
-     * created order's `order_id` — its Starmile tracking number — the only field in
-     * the response (`['order_id' => 'STM…']`). Use it as the `order_id` on the status,
-     * label and management endpoints.
+     * created order's `order_id` (its Starmile tracking number) plus `items` — one
+     * entry per parcel mapping your `item_id` (as sent, or null) to `parcel_id` (our
+     * parcel's Starmile tracking number):
+     * `['order_id' => 'STM…', 'items' => [['item_id' => 'PKG-1', 'parcel_id' => 'STM…']]]`.
      *
      * Your own references must be unique — the `order_id`, each parcel's `item_id`,
      * and each `merchant_tracking`. Reusing one that already exists (or repeating an
@@ -30,7 +31,7 @@ final class Orders extends AbstractResource
      * so re-sending an order never creates a duplicate.
      *
      * @param OrderBuilder|array<string, mixed> $order
-     * @return array{order_id: string}
+     * @return array{order_id: string, items: list<array{item_id: ?string, parcel_id: string}>}
      */
     public function create($order)
     {
@@ -45,10 +46,10 @@ final class Orders extends AbstractResource
      * (the barcode you sent on create). Returns the raw PDF bytes — write them to a
      * file or stream them to the client. Scope: `labels:read`.
      *
-     * To address a parcel by its Starmile tracking number instead, use
-     * {@see self::labelByParcelId()}.
+     * To address a parcel by your own item_id instead, use
+     * {@see self::labelByItemId()}.
      *
-     * @param string $merchantTracking The parcel's merchant tracking (barcode).
+     * @param string $merchantTracking The parcel's merchant tracking (sticker code).
      * @return string the raw PDF bytes
      */
     public function label($merchantTracking)
@@ -61,18 +62,17 @@ final class Orders extends AbstractResource
     }
 
     /**
-     * Download a SINGLE parcel's label PDF, addressed by its `parcel_id` — the
-     * Starmile tracking number (`tracking_number`) returned on create. Scope:
-     * `labels:read`.
+     * Download a SINGLE parcel's label PDF, addressed by its `item_id` — the
+     * per-parcel reference you sent on create. Scope: `labels:read`.
      *
-     * @param string $parcelId The parcel's Starmile tracking number (e.g. STM0000000069).
+     * @param string $itemId The parcel's item_id (e.g. PKG-1).
      * @return string the raw PDF bytes
      */
-    public function labelByParcelId($parcelId)
+    public function labelByItemId($itemId)
     {
         return $this->connection->getRaw(
             '/api/v1/orders/label',
-            array('parcel_id' => $parcelId),
+            array('item_id' => $itemId),
             'application/pdf'
         );
     }

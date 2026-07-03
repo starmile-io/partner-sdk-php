@@ -18,7 +18,10 @@ final class OrdersTest extends TestCase
     {
         $http = new FakeHttpClient();
         $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
-        $http->queueJson(201, array('data' => array('order_id' => 'STM000123')));
+        $http->queueJson(201, array('data' => array(
+            'order_id' => 'STM000123',
+            'items' => array(array('item_id' => 'ITEM-1', 'parcel_id' => 'STM000124')),
+        )));
 
         $order = OrderBuilder::make(7, 'ORD-1')
             ->recipient('Jane Doe', '+994500000000', null, '5AB12C3')
@@ -31,7 +34,10 @@ final class OrdersTest extends TestCase
 
         $created = $this->client($http)->orders()->create($order);
 
-        $this->assertSame(array('order_id' => 'STM000123'), $created);
+        $this->assertSame(array(
+            'order_id' => 'STM000123',
+            'items' => array(array('item_id' => 'ITEM-1', 'parcel_id' => 'STM000124')),
+        ), $created);
 
         $body = $http->lastJsonBody();
         $this->assertSame(7, $body['service_id']);
@@ -129,16 +135,16 @@ final class OrdersTest extends TestCase
         $this->assertSame('application/pdf', $call['headers']['Accept']);
     }
 
-    public function testLabelByParcelIdSendsTheStarmileTrackingNumber()
+    public function testLabelByItemIdSendsTheItemId()
     {
         $http = new FakeHttpClient();
         $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
         $http->queueRaw(200, '%PDF-1.7', array('Content-Type' => 'application/pdf'));
 
-        $this->client($http)->orders()->labelByParcelId('STM0000000069');
+        $this->client($http)->orders()->labelByItemId('PKG-1');
 
         $call = $http->lastRequest();
-        $this->assertStringContainsString('parcel_id=STM0000000069', $call['url']);
+        $this->assertStringContainsString('item_id=PKG-1', $call['url']);
         $this->assertStringNotContainsString('merchant_tracking', $call['url']);
         $this->assertStringNotContainsString('order_id', $call['url']);
     }
