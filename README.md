@@ -98,8 +98,8 @@ $order = OrderBuilder::make($serviceId, 'ORD-1001')   // service_id + your order
     ->deliverToPudo(42)                                // or ->deliverHome($regionId) / ->deliverToLocker($lockerId)
     ->shippingCost(9.90)
     ->addParcel(
-        ParcelBuilder::make('ITEM-1')                // your per-item reference
-            ->merchantTracking('BARCODE-1')            // the physical sticker code
+        ParcelBuilder::make('ITEM-1')                // your per-item reference (echoed back as partner_tracking)
+            ->merchantTracking('BARCODE-1')            // the physical sticker code (merchant_tracking)
             ->weightGrams(1200)
             ->addProduct(
                 ProductBuilder::make('Running shoes')
@@ -114,7 +114,8 @@ echo $created['order_id'];    // STM…
 ```
 
 Orders and parcels are addressed by **your own references** afterwards — the
-`order_id` you sent, and a shipment's `item_id`:
+`order_id` you sent, and a parcel's `item_id` (which the parcel carries back as
+`partner_tracking` in responses):
 
 ```php
 // Update a shipment that has not been received yet (partial; `products` replaces the list).

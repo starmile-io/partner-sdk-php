@@ -12,7 +12,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   order has moved past its flow's first step (previously "once received / in
   custody"). No SDK code change — the same calls, a slightly stricter server rule.
 
+### Changed
+- **A parcel's `item_id` and `merchant_tracking` are now optional.**
+  `ParcelBuilder::make()` takes an optional item_id; omit it and the parcel's
+  `partner_tracking` is left empty. Omit `merchant_tracking` and Starmile fills it
+  with the parcel's own tracking number. (The ones you DO send still must be unique.)
+
 ### Changed (BREAKING)
+- **The parcel's reference fields are renamed in the JSON.** A parcel now carries
+  `merchant_tracking` (the physical sticker code, formerly `barcode`) and
+  `partner_tracking` (your own per-item reference — the `item_id` you send on create,
+  formerly the parcel's `tracking`). The request field on `ParcelBuilder` /
+  `create()` is still `item_id`; it is echoed back on the parcel as `partner_tracking`.
 - **`orders()->create()` now returns only the order_id.** The create response is
   `['order_id' => 'STM…']` (the created order's Starmile tracking number) instead of
   the full order object. Use it as the `order_id` on the status, label and management

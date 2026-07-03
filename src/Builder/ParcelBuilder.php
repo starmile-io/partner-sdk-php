@@ -4,9 +4,10 @@ namespace Starmile\PartnerSdk\Builder;
 
 /**
  * Fluent builder for a parcel (a physical hub package within an order). `item_id`
- * is the partner's per-item reference; `merchant_tracking` is the physical sticker
- * code. Weights and dimensions are records-only — DWS measures the real values at
- * the hub. A parcel must carry at least one product.
+ * is the partner's per-item reference (echoed back on the parcel as
+ * `partner_tracking`); `merchant_tracking` is the physical sticker code. Weights
+ * and dimensions are records-only — DWS measures the real values at the hub. A
+ * parcel must carry at least one product.
  */
 final class ParcelBuilder
 {
@@ -17,17 +18,21 @@ final class ParcelBuilder
     private $products = array();
 
     /**
-     * @param string $itemId The partner's per-item reference.
+     * @param string|null $itemId The partner's per-item reference (optional; echoed
+     *                            back on the parcel as partner_tracking when sent).
      */
-    public function __construct($itemId)
+    public function __construct($itemId = null)
     {
-        $this->attributes['item_id'] = (string) $itemId;
+        if ($itemId !== null) {
+            $this->attributes['item_id'] = (string) $itemId;
+        }
     }
 
     /**
+     * @param string|null $itemId
      * @return ParcelBuilder
      */
-    public static function make($itemId)
+    public static function make($itemId = null)
     {
         return new self($itemId);
     }
