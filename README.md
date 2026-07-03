@@ -16,7 +16,7 @@ events.
 
 > This package is a thin, faithful client over the HTTP API. The HTTP API remains
 > the canonical contract; the public reference lives at
-> [api.starmile.app](https://api.starmile.app).
+> [api.starmile.io](https://api.starmile.io).
 
 ## Installation
 
@@ -51,7 +51,7 @@ environment — never hardcode credentials or per-environment hosts.
 
 | Option            | Default                     | Description                                                        |
 | ----------------- | --------------------------- | ------------------------------------------------------------------ |
-| `base_url`        | `https://api.starmile.app`  | API host. Point at your sandbox/staging outside production.        |
+| `base_url`        | `https://api.starmile.io`  | API host. Point at your sandbox/staging outside production.        |
 | `scopes`          | all granted                 | Subset of the credential's scopes to request on the token.         |
 | `http_client`     | bundled cURL client         | Any `HttpClientInterface` (Guzzle/Symfony/PSR-18 adapter, a mock). |
 | `token_storage`   | in-memory                   | A `TokenStorageInterface` to share one token across processes.     |

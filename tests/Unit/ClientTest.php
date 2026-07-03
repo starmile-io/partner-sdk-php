@@ -23,12 +23,12 @@ final class ClientTest extends TestCase
         // First request is the token exchange, form-encoded.
         $token = $http->requests[0];
         $this->assertSame('POST', $token['method']);
-        $this->assertSame('https://api.starmile.app/oauth/token', $token['url']);
+        $this->assertSame('https://api.starmile.io/oauth/token', $token['url']);
         $this->assertStringContainsString('client_credentials', $token['body']);
 
         // Second request carries the bearer token and hits the catalogue.
         $call = $http->requests[1];
-        $this->assertSame('https://api.starmile.app/api/v1/services', $call['url']);
+        $this->assertSame('https://api.starmile.io/api/v1/services', $call['url']);
         $this->assertSame('Bearer tok_123', $call['headers']['Authorization']);
     }
 
@@ -45,9 +45,9 @@ final class ClientTest extends TestCase
 
         // 1 token call + 2 API calls — the token was not re-fetched.
         $this->assertCount(3, $http->requests);
-        $this->assertSame('https://api.starmile.app/oauth/token', $http->requests[0]['url']);
-        $this->assertSame('https://api.starmile.app/api/v1/services', $http->requests[1]['url']);
-        $this->assertSame('https://api.starmile.app/api/v1/rates', $http->requests[2]['url']);
+        $this->assertSame('https://api.starmile.io/oauth/token', $http->requests[0]['url']);
+        $this->assertSame('https://api.starmile.io/api/v1/services', $http->requests[1]['url']);
+        $this->assertSame('https://api.starmile.io/api/v1/rates', $http->requests[2]['url']);
     }
 
     public function testABaseUrlOverrideIsHonoured()

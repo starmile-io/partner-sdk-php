@@ -23,7 +23,7 @@ $client = Client::create(
     getenv('STARMILE_CLIENT_ID'),
     getenv('STARMILE_CLIENT_SECRET'),
     array(
-        // Defaults to https://api.starmile.app; point at your sandbox otherwise.
+        // Defaults to https://api.starmile.io; point at your sandbox otherwise.
         'base_url' => getenv('STARMILE_BASE_URL') ?: null,
     )
 );

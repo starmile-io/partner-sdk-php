@@ -11,9 +11,9 @@
         "partner-api",
         "sdk"
     ],
-    "homepage": "https://api.starmile.app",
+    "homepage": "https://api.starmile.io",
     "support": {
-        "docs": "https://api.starmile.app",
+        "docs": "https://api.starmile.io",
         "source": "https://github.com/starmile/partner-sdk-php"
     },
     "require": {

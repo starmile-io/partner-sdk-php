@@ -20,7 +20,7 @@ use Starmile\PartnerSdk\Retry\Sleeper;
 final class Configuration
 {
     /** The production Partner API base URL (default). */
-    const DEFAULT_BASE_URL = 'https://api.starmile.app';
+    const DEFAULT_BASE_URL = 'https://api.starmile.io';
 
     /** @var Credentials */
     private $credentials;

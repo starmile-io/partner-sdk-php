@@ -85,7 +85,7 @@ final class OrdersTest extends TestCase
 
         $call = $http->lastRequest();
         $this->assertSame('PATCH', $call['method']);
-        $this->assertSame('https://api.starmile.app/api/v1/orders/ORD%2F1/parcels/ITEM%202', $call['url']);
+        $this->assertSame('https://api.starmile.io/api/v1/orders/ORD%2F1/parcels/ITEM%202', $call['url']);
         $this->assertSame(array('weight_grams' => 1200), $http->lastJsonBody());
     }
 
