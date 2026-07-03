@@ -24,8 +24,9 @@ final class Orders extends AbstractResource
      * the response (`['order_id' => 'STM…']`). Use it as the `order_id` on the status,
      * label and management endpoints.
      *
-     * Each parcel's `merchant_tracking` must be unique — reusing one that already
-     * exists (or repeating it across parcels in the same order) is rejected `422`,
+     * Your own references must be unique — the `order_id`, each parcel's `item_id`,
+     * and each `merchant_tracking`. Reusing one that already exists (or repeating an
+     * item_id / merchant_tracking across parcels in the same order) is rejected `422`,
      * so re-sending an order never creates a duplicate.
      *
      * @param OrderBuilder|array<string, mixed> $order

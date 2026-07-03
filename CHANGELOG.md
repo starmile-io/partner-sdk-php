@@ -28,10 +28,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [4.0.1] - 2026-07-02
 
 ### Changed
-- **A duplicate `merchant_tracking` on `orders()->create()` is now a clean `422`.**
-  Reusing a `merchant_tracking` that already exists (or repeating one across parcels
-  in the same order) is rejected with a `422` message instead of surfacing as a
-  server error. Re-sending an order never creates a duplicate.
+- **`orders()->create()` rejects re-used references with a clean `422`.** Your
+  `order_id`, each parcel's `item_id`, and each `merchant_tracking` must be unique;
+  reusing one that already exists (or repeating an item_id / merchant_tracking across
+  parcels in the same order) is rejected `422`, so re-sending an order never creates a
+  duplicate.
 - **`orders()->label()` now returns the org's default parcel label template** —
   each parcel is rendered from the organization's configured parcel template (the
   full sticker), one page per package, instead of a bare Code-128 barcode. No code
