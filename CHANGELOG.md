@@ -13,6 +13,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   custody"). No SDK code change — the same calls, a slightly stricter server rule.
 
 ### Changed (BREAKING)
+- **`orders()->create()` now returns only the order_id.** The create response is
+  `['order_id' => 'STM…']` (the created order's Starmile tracking number) instead of
+  the full order object. Use it as the `order_id` on the status, label and management
+  endpoints; address parcels by your own `merchant_tracking`.
 - **The parcel label endpoint is now strictly one parcel per call.**
   `orders()->label($merchantTracking)` now takes a single argument — the parcel's
   `merchant_tracking` (barcode). The previous `label($orderId, $merchantTracking)`

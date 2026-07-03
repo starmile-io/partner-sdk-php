@@ -110,7 +110,7 @@ $order = OrderBuilder::make($serviceId, 'ORD-1001')   // service_id + your order
     );
 
 $created = $starmile->orders()->create($order);
-echo $created['tracking_number'];
+echo $created['order_id'];    // STM…
 ```
 
 Orders and parcels are addressed by **your own references** afterwards — the

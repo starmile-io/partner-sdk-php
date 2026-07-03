@@ -18,7 +18,7 @@ final class OrdersTest extends TestCase
     {
         $http = new FakeHttpClient();
         $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
-        $http->queueJson(201, array('data' => array('id' => 99, 'tracking_number' => 'SM123')));
+        $http->queueJson(201, array('data' => array('order_id' => 'STM000123')));
 
         $order = OrderBuilder::make(7, 'ORD-1')
             ->recipient('Jane Doe', '+994500000000', null, '5AB12C3')
@@ -31,7 +31,7 @@ final class OrdersTest extends TestCase
 
         $created = $this->client($http)->orders()->create($order);
 
-        $this->assertSame(array('id' => 99, 'tracking_number' => 'SM123'), $created);
+        $this->assertSame(array('order_id' => 'STM000123'), $created);
 
         $body = $http->lastJsonBody();
         $this->assertSame(7, $body['service_id']);

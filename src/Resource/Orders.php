@@ -19,15 +19,17 @@ final class Orders extends AbstractResource
 {
     /**
      * Create an order. Accepts either an {@see OrderBuilder} or a raw payload array
-     * matching the API body (`service_id`, `order_id`, `parcels[]`, ...). Returns
-     * the created order.
+     * matching the API body (`service_id`, `order_id`, `parcels[]`, ...). Returns the
+     * created order's `order_id` — its Starmile tracking number — the only field in
+     * the response (`['order_id' => 'STM…']`). Use it as the `order_id` on the status,
+     * label and management endpoints.
      *
      * Each parcel's `merchant_tracking` must be unique — reusing one that already
      * exists (or repeating it across parcels in the same order) is rejected `422`,
      * so re-sending an order never creates a duplicate.
      *
      * @param OrderBuilder|array<string, mixed> $order
-     * @return array<string, mixed>
+     * @return array{order_id: string}
      */
     public function create($order)
     {
