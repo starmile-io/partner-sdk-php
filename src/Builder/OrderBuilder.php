@@ -72,31 +72,20 @@ final class OrderBuilder
     }
 
     /**
-     * Deliver to a region by its id (Home Delivery services). Optionally set the
-     * address lines. Use {@see deliverHomeToRegion()} when you only know the region
-     * NAME — the API resolves a name to its id for you.
+     * Deliver to a region (Home Delivery services). You address the destination by
+     * YOUR OWN reference — the region's parent region NAME plus your leaf region
+     * id/code — which Starmile maps, per partner, to one of its regions. Both are
+     * required; the parent disambiguates a leaf that repeats across parents. Have
+     * an operator map your regions in Starmile first (an unmapped reference is
+     * rejected). Optionally set the address lines.
      *
+     * @param  string      $parentRegion  the parent region NAME (e.g. "Baku")
+     * @param  string|int  $region        your leaf region id/code (e.g. "2")
      * @return $this
      */
-    public function deliverHome($regionId, $addressFirst = null, $addressSecond = null, $zip = null)
+    public function deliverHome($parentRegion, $region, $addressFirst = null, $addressSecond = null, $zip = null)
     {
-        $this->attributes['region_id'] = (int) $regionId;
-
-        return $this->address($addressFirst, $addressSecond, $zip);
-    }
-
-    /**
-     * Deliver to a region by its NAME or id (Home Delivery services). The API
-     * resolves the value against the destination country by an exact name match
-     * first, then falls back to an id lookup — so a partner that knows the region
-     * only by its human name (e.g. "Abşeron") can send it as-is. Optionally set the
-     * address lines.
-     *
-     * @param  string|int  $region  the destination region name (preferred) or id
-     * @return $this
-     */
-    public function deliverHomeToRegion($region, $addressFirst = null, $addressSecond = null, $zip = null)
-    {
+        $this->attributes['parent_region'] = (string) $parentRegion;
         $this->attributes['region'] = (string) $region;
 
         return $this->address($addressFirst, $addressSecond, $zip);

@@ -4,6 +4,20 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] - 2026-07-03
+
+### Changed
+- **Home delivery is addressed per-partner, map-only (BREAKING).** A partner now
+  addresses a Home Delivery destination by its OWN reference — the region's parent
+  region NAME plus its leaf region id/code — which Starmile maps, per partner, to
+  one of its regions. `OrderBuilder::deliverHome()` now takes
+  `($parentRegion, $region, $addressFirst = null, $addressSecond = null, $zip = null)`
+  and sends `parent_region` + `region`. The old `deliverHome($regionId)` (which
+  sent `region_id`) and `deliverHomeToRegion($name)` are removed, and the server
+  no longer accepts `region_id` or a fuzzy name/id lookup: an unmapped reference is
+  rejected (an operator maps your regions in Starmile first). The parent
+  disambiguates a leaf that repeats across parents.
+
 ## [5.0.0] - 2026-07-03
 
 ### Changed
