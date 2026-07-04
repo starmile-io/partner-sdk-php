@@ -20,10 +20,18 @@ final class Orders extends AbstractResource
     /**
      * Create an order. Accepts either an {@see OrderBuilder} or a raw payload array
      * matching the API body (`service_id`, `order_id`, `parcels[]`, ...). Returns the
-     * created order's `order_id` (its Starmile tracking number) plus `items` — one
-     * entry per parcel mapping your `item_id` (as sent, or null) to `parcel_id` (our
-     * parcel's Starmile tracking number):
-     * `['order_id' => 'STM…', 'items' => [['item_id' => 'PKG-1', 'parcel_id' => 'STM…']]]`.
+     * created order's `order_id` (its Starmile tracking number), a `region_status`
+     * ({@see \Starmile\PartnerSdk\Enum\RegionStatus}), and `items` — one entry per
+     * parcel mapping your `item_id` (as sent, or null) to `parcel_id` (our parcel's
+     * Starmile tracking number):
+     * `['order_id' => 'STM…', 'region_status' => 'mapped', 'items' => [['item_id' => 'PKG-1', 'parcel_id' => 'STM…']]]`.
+     *
+     * For a Home Delivery service the destination region is resolved from your own
+     * (parent, leaf) reference, map-only per partner. If it is not mapped yet the
+     * order is still ACCEPTED with `region_status` `pending_mapping`: an operator maps
+     * it in Starmile and the waiting order is resolved automatically — you do not
+     * resend it. `mapped` = resolved; `not_applicable` = no home region (PUDO /
+     * locker / clearance).
      *
      * Your own references must be unique — the `order_id`, each parcel's `item_id`,
      * and each `merchant_tracking`. Reusing one that already exists (or repeating an
@@ -31,7 +39,7 @@ final class Orders extends AbstractResource
      * so re-sending an order never creates a duplicate.
      *
      * @param OrderBuilder|array<string, mixed> $order
-     * @return array{order_id: string, items: list<array{item_id: ?string, parcel_id: string}>}
+     * @return array{order_id: string, region_status: string, items: list<array{item_id: ?string, parcel_id: string}>}
      */
     public function create($order)
     {

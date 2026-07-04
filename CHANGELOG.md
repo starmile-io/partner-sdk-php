@@ -4,6 +4,23 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.0] - 2026-07-04
+
+### Changed
+- **An unmapped Home Delivery region is no longer rejected.** When your
+  `(parent_region, region)` reference is not mapped yet, `orders()->create()` now
+  succeeds (`201`) instead of returning `422`. The order is accepted and queued;
+  an operator maps your region in Starmile and the waiting order is resolved
+  automatically — you do NOT resend it.
+
+### Added
+- **`region_status` on the create-order response.** `orders()->create()` now
+  returns a `region_status` field alongside `order_id` and `items`:
+  `mapped` (region resolved), `pending_mapping` (accepted, awaiting an operator
+  mapping), or `not_applicable` (PUDO / locker / clearance — no home region).
+- **`Enum\RegionStatus`** constant catalogue (`MAPPED`, `PENDING_MAPPING`,
+  `NOT_APPLICABLE`) mirroring the server vocabulary.
+
 ## [6.0.0] - 2026-07-03
 
 ### Changed

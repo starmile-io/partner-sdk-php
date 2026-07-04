@@ -8,6 +8,7 @@ use Starmile\PartnerSdk\Builder\ProductBuilder;
 use Starmile\PartnerSdk\Builder\ParcelBuilder;
 use Starmile\PartnerSdk\Client;
 use Starmile\PartnerSdk\Configuration;
+use Starmile\PartnerSdk\Enum\RegionStatus;
 use Starmile\PartnerSdk\Exception\ConflictException;
 use Starmile\PartnerSdk\Exception\ValidationException;
 use Starmile\PartnerSdk\Tests\Support\FakeHttpClient;
@@ -20,6 +21,7 @@ final class OrdersTest extends TestCase
         $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
         $http->queueJson(201, array('data' => array(
             'order_id' => 'STM000123',
+            'region_status' => 'not_applicable',
             'items' => array(array('item_id' => 'ITEM-1', 'parcel_id' => 'STM000124')),
         )));
 
@@ -36,6 +38,7 @@ final class OrdersTest extends TestCase
 
         $this->assertSame(array(
             'order_id' => 'STM000123',
+            'region_status' => 'not_applicable',
             'items' => array(array('item_id' => 'ITEM-1', 'parcel_id' => 'STM000124')),
         ), $created);
 
@@ -75,6 +78,30 @@ final class OrdersTest extends TestCase
         $this->assertArrayNotHasKey('region_id', $body);
         $this->assertSame('Nizami küç. 12', $body['address_first']);
         $this->assertSame('AZ1000', $body['zip']);
+    }
+
+    public function testAnUnmappedHomeRegionIsAcceptedAsPendingMapping()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        // The server no longer 422s an unmapped region: the order is accepted and
+        // reports region_status pending_mapping (an operator maps it, then the order
+        // resolves automatically — no resend).
+        $http->queueJson(201, array('data' => array(
+            'order_id' => 'STM000200',
+            'region_status' => RegionStatus::PENDING_MAPPING,
+            'items' => array(array('item_id' => 'ITEM-1', 'parcel_id' => 'STM000201')),
+        )));
+
+        $order = OrderBuilder::make(7, 'ORD-3')
+            ->deliverHome('Baku', 'Unmapped-Leaf')
+            ->addParcel(ParcelBuilder::make('ITEM-1')->addProduct(ProductBuilder::make('Shoes')));
+
+        $created = $this->client($http)->orders()->create($order);
+
+        $this->assertSame(RegionStatus::PENDING_MAPPING, $created['region_status']);
+        $this->assertSame('pending_mapping', RegionStatus::PENDING_MAPPING);
+        $this->assertSame('STM000200', $created['order_id']);
     }
 
     public function testUpdateParcelEncodesReferencesInThePath()

@@ -111,8 +111,17 @@ $order = OrderBuilder::make($serviceId, 'ORD-1001')   // service_id + your order
 
 $created = $starmile->orders()->create($order);
 echo $created['order_id'];              // STM… (our order id)
+echo $created['region_status'];         // mapped | pending_mapping | not_applicable
 echo $created['items'][0]['parcel_id']; // STM… (our parcel id for your item_id)
 ```
+
+For a **Home Delivery** service the destination region is resolved from your own
+`(parent_region, region)` reference, map-only per partner. If it is not mapped yet
+the order is **still accepted** and comes back with `region_status`
+`pending_mapping` — an operator maps your region in Starmile and the waiting order
+resolves automatically, so you do **not** resend it. `mapped` means the region was
+resolved; `not_applicable` means the service has no home region (PUDO / locker /
+clearance). Compare against `Starmile\PartnerSdk\Enum\RegionStatus`.
 
 Orders and parcels are addressed by **your own references** afterwards — the
 `order_id` you sent, and a parcel's `item_id` (which the parcel carries back as
