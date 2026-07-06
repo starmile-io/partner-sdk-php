@@ -30,7 +30,7 @@ final class StatusPoolTest extends TestCase
         $this->assertStringContainsString('limit=50', $http->requests[1]['url']);
     }
 
-    public function testChangeRowExposesParcelScopedExternalId()
+    public function testChangeRowExposesParcelScopedExternalIdAndCountry()
     {
         $http = new FakeHttpClient();
         $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
@@ -40,6 +40,7 @@ final class StatusPoolTest extends TestCase
                 'tracking_number' => 'SM9',
                 'external_parent_id' => 'PO-1',
                 'external_id' => 'ITEM-1',
+                'country' => 'CN',
                 'status' => 'received_at_hub',
                 'previous_status' => 'waiting_for_arrival',
                 'occurred_at' => '2026-07-06T00:00:00Z',
@@ -51,9 +52,11 @@ final class StatusPoolTest extends TestCase
         $changes = $this->client($http)->statusPool()->changes(0)->changes();
 
         // A parcel-scoped ("sub-order") change carries the partner's per-parcel
-        // reference alongside the order reference — passed through verbatim.
+        // reference alongside the order reference, plus the ISO-2 country the
+        // change occurred in — all passed through verbatim.
         $this->assertSame('PO-1', $changes[0]['external_parent_id']);
         $this->assertSame('ITEM-1', $changes[0]['external_id']);
+        $this->assertSame('CN', $changes[0]['country']);
     }
 
     public function testEachDrainsAcrossPagesUntilExhausted()

@@ -162,7 +162,7 @@ it, in order. Persist the returned cursor to resume next time.
 // One page at a time:
 $page = $starmile->statusPool()->changes($since = 0, $limit = 100);
 foreach ($page->changes() as $change) {
-    // $change['cursor'], ['tracking_number'], ['external_parent_id'], ['external_id'], ['status'], ['previous_status'], ['occurred_at']
+    // $change['cursor'], ['tracking_number'], ['external_parent_id'], ['external_id'], ['country'], ['status'], ['previous_status'], ['occurred_at']
 }
 $next = $page->nextCursor();
 $more = $page->hasMore();
@@ -176,7 +176,9 @@ foreach ($starmile->statusPool()->each($since = 0) as $change) {
 `external_parent_id` is your own reference for the **order**. `external_id` is your
 reference for a single **parcel** (the `item_id` you sent on create) and is present
 only on parcel-scoped changes — e.g. a parcel received at the hub — so you can act
-on that exact parcel; order-level changes leave `external_id` null.
+on that exact parcel; order-level changes leave `external_id` null. `country` is the
+ISO-2 country the change occurred in (the hub's country), so you can tell an origin
+event (e.g. `CN`) apart from a destination one (e.g. `AZ`).
 
 ### Inbound events
 

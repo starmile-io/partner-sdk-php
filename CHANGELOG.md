@@ -4,6 +4,17 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.3.0] - 2026-07-06
+
+### Added
+- **`country` on status pool changes.** A change row in
+  `statusPool()->changes()` now carries `country` — the ISO-2 country the change
+  occurred in (the hub's country). On a cross-border journey this lets you tell an
+  origin event (e.g. `CN`, a parcel received at the origin hub) apart from a
+  destination one (e.g. `AZ`), which you previously could not resolve from the
+  feed. `null` on rows that predate the field. Additive and backward-compatible:
+  pollers that ignore it keep working.
+
 ## [6.2.0] - 2026-07-06
 
 ### Added
