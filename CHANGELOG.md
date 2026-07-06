@@ -4,6 +4,18 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.2.0] - 2026-07-06
+
+### Added
+- **`external_id` on status pool changes.** A change row in
+  `statusPool()->changes()` now carries `external_id` — your own reference for a
+  single **parcel** (the `item_id` you sent on `orders()->create()`). It is set
+  only on **parcel-scoped** changes (a change on one parcel, such as a parcel
+  received at the hub); order-level changes leave it null. This lets you act on the
+  exact parcel — e.g. mark just that sub-order received — instead of only the whole
+  order. `external_parent_id` (your order reference) is unchanged. Additive and
+  backward-compatible: existing pollers that ignore the field keep working.
+
 ## [6.1.0] - 2026-07-04
 
 ### Changed
