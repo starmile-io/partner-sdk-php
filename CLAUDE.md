@@ -18,6 +18,7 @@
 
 - CRITICAL: run `git add -A` and `git commit` **immediately after** completing any requested task, bug fix, or feature, with a descriptive **conventional-commit** message matching the work. Do not ask permission before committing.
 - Do NOT create or switch to a new branch for a task. Always commit on the **current branch** unless the user explicitly asks you to branch.
+- **Release flow**: `dev` is the release branch (auto-deploys to the **dev environment**) — land all work on `dev` (per the rule above; merge feature branches into `dev`, never into `prod`). Ship to production **only** by merging **`dev` → `prod`**; never commit or open PRs directly against `prod`.
 
 ## Documentation Rules
 
