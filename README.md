@@ -175,6 +175,12 @@ $more = $page->hasMore();
 foreach ($starmile->statusPool()->each($since = 0) as $change) {
     $since = $change['cursor']; // persist this
 }
+
+// Just one order's (or parcel's) history — pass a tracking number to narrow the
+// feed server-side, then page from 0 until it is exhausted:
+foreach ($starmile->statusPool()->each($since = 0, $limit = 100, 'STM000123') as $change) {
+    // only changes for tracking number STM000123
+}
 ```
 
 `external_parent_id` is your own reference for the **order**. `external_id` is your

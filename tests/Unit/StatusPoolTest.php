@@ -59,6 +59,30 @@ final class StatusPoolTest extends TestCase
         $this->assertSame('CN', $changes[0]['country']);
     }
 
+    public function testChangesForwardsTheTrackingNumberFilter()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array(), 'next_cursor' => 0, 'has_more' => false));
+
+        $this->client($http)->statusPool()->changes(0, 100, 'STM001');
+
+        // The tracking number narrows the feed to one order/parcel server-side.
+        $this->assertStringContainsString('tracking_number=STM001', $http->requests[1]['url']);
+    }
+
+    public function testChangesOmitsTheTrackingNumberWhenNotGiven()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array(), 'next_cursor' => 0, 'has_more' => false));
+
+        $this->client($http)->statusPool()->changes(0, 100);
+
+        // No filter → the param is absent, so the whole feed is polled as before.
+        $this->assertStringNotContainsString('tracking_number', $http->requests[1]['url']);
+    }
+
     public function testEachDrainsAcrossPagesUntilExhausted()
     {
         $http = new FakeHttpClient();
