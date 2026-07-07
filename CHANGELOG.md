@@ -4,6 +4,18 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.4.0] - 2026-07-07
+
+### Changed
+- **`rate.service_id` is now the Service's own id.** In `catalogue()->rates()`,
+  each rate's `service_id` now equals the Service `id` from
+  `catalogue()->services()` (and the `service_id` you send on order creation) —
+  previously it carried the underlying flow id. This makes a rate map 1:1 to a
+  single Service, so two Services sharing one flow are priced independently. If
+  you correlated rates to services, match on the Service's `id` (not
+  `flow_definition_id`). The order-creation contract is unchanged — you have
+  always sent a Service's own `id` as `service_id`.
+
 ## [6.3.0] - 2026-07-06
 
 ### Added

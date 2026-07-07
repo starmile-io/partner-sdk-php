@@ -82,6 +82,10 @@ $services = $starmile->catalogue()->services(); // valid service_id values to or
 $rates    = $starmile->catalogue()->rates();    // the rates bound to your partner
 ```
 
+Each rate's `service_id` is a **Service's own `id`** (the same value you send on
+order creation), so a rate maps to exactly one Service — correlate a rate to a
+service by matching `$rate['service_id']` to `$service['id']`.
+
 ### Orders
 
 Build an order with the fluent builders (or pass a raw array matching the API
