@@ -71,7 +71,7 @@ scopes on your credential.
 | Resource                | Scope(s)                                                          | Endpoints |
 | ----------------------- | ---------------------------------------------------------------- | --------- |
 | `$starmile->catalogue()`| `catalogue:read`                                                 | `GET /api/v1/services`, `GET /api/v1/rates` |
-| `$starmile->orders()`   | `orders:create`, `orders:update`, `orders:cancel`                | `POST /api/v1/orders`, `PATCH /api/v1/orders/{order}/parcels/{parcel}`, `POST /api/v1/orders/{order}/cancel` |
+| `$starmile->orders()`   | `orders:create`, `orders:update`, `orders:cancel`                | `POST /api/v1/orders`, `PATCH /api/v1/orders/{order}/parcels/{parcel}`, `POST /api/v1/orders/{order}/parcels/{parcel}/cancel`, `POST /api/v1/orders/{order}/cancel` |
 | `$starmile->statusPool()`| `status:read`                                                   | `GET /api/v1/partner/changes` |
 | `$starmile->events()`   | `events:transport`, `events:pudo`, `events:customs`, `leg:handoff`| `POST /api/v1/partner/events` |
 
@@ -137,6 +137,10 @@ $starmile->orders()->updateParcel('ORD-1001', 'ITEM-1', [
     'weight_grams' => 1500,
     'merchant_tracking' => 'BARCODE-1B',
 ]);
+
+// Cancel a single parcel while it is still pre-custody (409 once received).
+// When it was the order's last active parcel, the order is cancelled too.
+$starmile->orders()->cancelParcel('ORD-1001', 'ITEM-1', 'item out of stock');
 
 // Cancel an order while it is still pre-custody (409 once in custody).
 $starmile->orders()->cancel('ORD-1001', 'customer changed mind');

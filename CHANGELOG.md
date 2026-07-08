@@ -4,6 +4,16 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.6.0] - 2026-07-08
+
+### Added
+- **Cancel a single parcel.** `orders()->cancelParcel($orderId, $itemId, $reason = null)`
+  cancels one package of an order (addressed by your own `order_id` + `item_id`)
+  while it is still at the flow's first step — `POST /api/v1/orders/{order}/parcels/{parcel}/cancel`
+  (scope `orders:cancel`). When the cancelled parcel was the order's last active
+  parcel, the order is cancelled too. `409` once the parcel has been received /
+  moved past the first step. Complements the existing `orders()->cancel()`.
+
 ## [6.5.0] - 2026-07-07
 
 ### Added

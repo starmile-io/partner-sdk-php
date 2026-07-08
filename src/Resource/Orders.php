@@ -10,6 +10,7 @@ use Starmile\PartnerSdk\Builder\OrderBuilder;
  *   POST  /api/v1/orders                                  (scope: orders:create)
  *   GET   /api/v1/orders/label                             (scope: labels:read)
  *   PATCH /api/v1/orders/{order}/parcels/{parcel}     (scope: orders:update)
+ *   POST  /api/v1/orders/{order}/parcels/{parcel}/cancel  (scope: orders:cancel)
  *   POST  /api/v1/orders/{order}/cancel                   (scope: orders:cancel)
  *
  * Orders and parcels are addressed by the partner's OWN references: `{order}` is
@@ -103,6 +104,25 @@ final class Orders extends AbstractResource
         $path = '/api/v1/orders/' . rawurlencode($orderId) . '/parcels/' . rawurlencode($itemId);
 
         return $this->unwrap($this->connection->patch($path, $changes));
+    }
+
+    /**
+     * Cancel a SINGLE parcel (one package of an order) while it is still at the
+     * flow's FIRST step. When it is the order's last active parcel, the order is
+     * cancelled too. 409 once the parcel has been received / moved past the first
+     * step. Scope: `orders:cancel`.
+     *
+     * @param string      $orderId The partner's order reference (order_id).
+     * @param string      $itemId  The partner's parcel reference (item_id).
+     * @param string|null $reason  Optional free-text cancellation reason.
+     * @return array<string, mixed>
+     */
+    public function cancelParcel($orderId, $itemId, $reason = null)
+    {
+        $path = '/api/v1/orders/' . rawurlencode($orderId) . '/parcels/' . rawurlencode($itemId) . '/cancel';
+        $body = $reason === null ? array() : array('reason' => $reason);
+
+        return $this->unwrap($this->connection->post($path, $body));
     }
 
     /**
