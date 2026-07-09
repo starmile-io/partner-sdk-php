@@ -4,6 +4,19 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.7.0] - 2026-07-09
+
+### Added
+- **`timezone` on status pool changes.** Each change row in
+  `statusPool()->changes()` now carries `timezone` — the IANA zone (e.g. `UTC`)
+  that `occurred_at` is expressed in.
+
+### Changed
+- **`occurred_at` on status pool changes is now a plain `Y-m-d H:i:s` timestamp**
+  (e.g. `2026-06-20 09:14:00`) instead of an ISO-8601 string with a trailing `Z`.
+  The zone moved to the new `timezone` field. If you parse `occurred_at`, read it
+  together with `timezone` (do not assume a `Z`/UTC suffix on the string).
+
 ## [6.6.0] - 2026-07-08
 
 ### Added

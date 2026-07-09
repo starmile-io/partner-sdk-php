@@ -43,7 +43,8 @@ final class StatusPoolTest extends TestCase
                 'country' => 'CN',
                 'status' => 'received_at_hub',
                 'previous_status' => 'waiting_for_arrival',
-                'occurred_at' => '2026-07-06T00:00:00Z',
+                'occurred_at' => '2026-07-06 00:00:00',
+                'timezone' => 'UTC',
             )),
             'next_cursor' => 5,
             'has_more' => false,
@@ -52,11 +53,14 @@ final class StatusPoolTest extends TestCase
         $changes = $this->client($http)->statusPool()->changes(0)->changes();
 
         // A parcel-scoped ("sub-order") change carries the partner's per-parcel
-        // reference alongside the order reference, plus the ISO-2 country the
-        // change occurred in — all passed through verbatim.
+        // reference alongside the order reference, the ISO-2 country the change
+        // occurred in, and the plain occurred_at + its timezone — all passed
+        // through verbatim.
         $this->assertSame('PO-1', $changes[0]['external_parent_id']);
         $this->assertSame('ITEM-1', $changes[0]['external_id']);
         $this->assertSame('CN', $changes[0]['country']);
+        $this->assertSame('2026-07-06 00:00:00', $changes[0]['occurred_at']);
+        $this->assertSame('UTC', $changes[0]['timezone']);
     }
 
     public function testChangesForwardsTheTrackingNumberFilter()

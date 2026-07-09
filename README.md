@@ -170,7 +170,7 @@ it, in order. Persist the returned cursor to resume next time.
 // One page at a time:
 $page = $starmile->statusPool()->changes($since = 0, $limit = 100);
 foreach ($page->changes() as $change) {
-    // $change['cursor'], ['tracking_number'], ['external_parent_id'], ['external_id'], ['country'], ['status'], ['previous_status'], ['occurred_at']
+    // $change['cursor'], ['tracking_number'], ['external_parent_id'], ['external_id'], ['country'], ['status'], ['previous_status'], ['occurred_at'], ['timezone']
 }
 $next = $page->nextCursor();
 $more = $page->hasMore();
@@ -192,7 +192,9 @@ reference for a single **parcel** (the `item_id` you sent on create) and is pres
 only on parcel-scoped changes — e.g. a parcel received at the hub — so you can act
 on that exact parcel; order-level changes leave `external_id` null. `country` is the
 ISO-2 country the change occurred in (the hub's country), so you can tell an origin
-event (e.g. `CN`) apart from a destination one (e.g. `AZ`).
+event (e.g. `CN`) apart from a destination one (e.g. `AZ`). `occurred_at` is a plain
+`Y-m-d H:i:s` timestamp (e.g. `2026-06-20 09:14:00`); `timezone` gives the IANA zone
+it is expressed in (e.g. `UTC`) — parse `occurred_at` in that zone.
 
 ### Inbound events
 
