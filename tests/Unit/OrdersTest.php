@@ -118,6 +118,32 @@ final class OrdersTest extends TestCase
         $this->assertSame(array('weight_grams' => 1200), $http->lastJsonBody());
     }
 
+    public function testCancelParcelPostsToTheParcelCancelPathWithReason()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array('id' => 5, 'status' => 'cancelled')));
+
+        $parcel = $this->client($http)->orders()->cancelParcel('ORD/1', 'ITEM 2', 'oversold');
+
+        $call = $http->lastRequest();
+        $this->assertSame('POST', $call['method']);
+        $this->assertSame('https://api.starmile.io/api/v1/orders/ORD%2F1/parcels/ITEM%202/cancel', $call['url']);
+        $this->assertSame(array('reason' => 'oversold'), $http->lastJsonBody());
+        $this->assertSame('cancelled', $parcel['status']);
+    }
+
+    public function testCancelParcelOmitsBodyWhenNoReasonGiven()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array('id' => 5, 'status' => 'cancelled')));
+
+        $this->client($http)->orders()->cancelParcel('ORD-1', 'ITEM-1');
+
+        $this->assertSame(array(), $http->lastJsonBody());
+    }
+
     public function testCancelRaisesConflictWhenInCustody()
     {
         $http = new FakeHttpClient();
