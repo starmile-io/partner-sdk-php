@@ -65,6 +65,7 @@ The official **PHP SDK** for the **Starmile Partner API** (Composer package `sta
 ## Releasing (tag every version — this is what publishes to Packagist)
 
 - CRITICAL: the SDK is published on **Packagist** as `starmile/partner-sdk`, and Packagist versions come **only from git tags**. A `CHANGELOG.md` bump is **not** a release on its own — until a matching tag is pushed, `composer require starmile/partner-sdk` can resolve only the unstable `dev-*` branch versions. **Every version bump ships its git tag in the same change** — a change is not "done" until the release is tagged.
+- CRITICAL: **never push a version-bump commit without cutting its tag in the same push.** A pushed commit that bumps `CHANGELOG.md` but has no tag is a bug — it leaves the released version behind `HEAD` and can open a version gap. If you ever find a pushed `## [X.Y.Z]` head with no `vX.Y.Z` tag (and any earlier untagged bumps below it), tag each bump at its own commit and push the tags before doing anything else.
 - After the code + test + `CHANGELOG.md` bump have landed, cut the release by tagging the **default branch (`prod`)** with the exact current `CHANGELOG.md` head version, then pushing the tag:
   - `git tag -a vX.Y.Z origin/prod -m "Release vX.Y.Z"`
   - `git push origin vX.Y.Z`
