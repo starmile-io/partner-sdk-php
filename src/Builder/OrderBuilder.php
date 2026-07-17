@@ -39,6 +39,10 @@ final class OrderBuilder
      * The recipient. `govId` is the recipient's government ID (`gov_id`) — the AZ FIN
      * or a foreign passport number — used for the customs declaration.
      *
+     * At least one of `phone` / `email` is REQUIRED by the API: the customer must be
+     * reachable (delivery coordination + any government-ID request). Omitting both is
+     * rejected `422`.
+     *
      * @return $this
      */
     public function recipient($name = null, $phone = null, $email = null, $govId = null)

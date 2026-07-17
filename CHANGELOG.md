@@ -4,6 +4,16 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.8.0] - 2026-07-17
+
+### Changed
+- **`POST /orders` now requires at least one customer contact.** An order must
+  carry `customer_phone` **or** `customer_email` (previously both were optional) —
+  the customer has to be reachable for delivery coordination and any government-ID
+  (FIN) request. Sending neither is rejected `422` with validation errors on both
+  fields. Use `recipient(name, phone, email, govId)` (or `customerPhone()` /
+  `customerEmail()`) and supply at least one of phone/email.
+
 ## [6.7.0] - 2026-07-09
 
 ### Added
