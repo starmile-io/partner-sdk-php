@@ -4,6 +4,15 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.10.1] - 2026-07-24
+
+### Changed
+- **`labelByOrderId()` prints a single ORDER label, not one per parcel.** The
+  `order_id` form of `GET /api/v1/orders/label` now returns one order-level label
+  whose barcode, weight, dimensions and contents are all the order's (contents
+  aggregated across its parcels), rather than a per-parcel document. No code change
+  to the SDK call — only the rendered PDF and the method's documentation.
+
 ## [6.10.0] - 2026-07-24
 
 ### Added
