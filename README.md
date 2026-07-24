@@ -159,6 +159,9 @@ file_put_contents('label.pdf', $starmile->orders()->label('BARCODE-1'));
 
 // By parcel_id (our parcel id, from items[].parcel_id on create).
 $pdf = $starmile->orders()->labelByParcelId('STM0000000121');
+
+// A whole order (one label per parcel) in one PDF, by the order's tracking number.
+file_put_contents('order-labels.pdf', $starmile->orders()->labelByOrderId('STM0000000120'));
 ```
 
 ### Status pool (replaces webhooks)

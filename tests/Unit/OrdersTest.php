@@ -204,6 +204,22 @@ final class OrdersTest extends TestCase
         $this->assertStringNotContainsString('order_id', $call['url']);
     }
 
+    public function testLabelByOrderIdSendsTheOrderId()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueRaw(200, '%PDF-1.7', array('Content-Type' => 'application/pdf'));
+
+        // A whole order's labels (one per parcel) in one PDF.
+        $pdf = $this->client($http)->orders()->labelByOrderId('STM0000000120');
+
+        $this->assertSame('%PDF-1.7', $pdf);
+        $call = $http->lastRequest();
+        $this->assertStringContainsString('order_id=STM0000000120', $call['url']);
+        $this->assertStringNotContainsString('parcel_id', $call['url']);
+        $this->assertStringNotContainsString('merchant_tracking', $call['url']);
+    }
+
     private function client(FakeHttpClient $http)
     {
         return new Client(new Configuration('id', 'secret', array('http_client' => $http, 'max_attempts' => 1)));

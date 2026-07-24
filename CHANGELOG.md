@@ -4,6 +4,15 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.10.0] - 2026-07-24
+
+### Added
+- **Print a whole order's labels in one call.** `orders()->labelByOrderId($orderId)`
+  fetches `GET /api/v1/orders/label?order_id={ref}` and returns one PDF carrying a
+  label per parcel of the order (addressed by the order's tracking number). The
+  existing `label()` (by `merchant_tracking`) and `labelByParcelId()` still return a
+  single parcel's label.
+
 ## [6.9.0] - 2026-07-24
 
 ### Added

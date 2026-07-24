@@ -56,7 +56,8 @@ final class Orders extends AbstractResource
      * file or stream them to the client. Scope: `labels:read`.
      *
      * To address a parcel by our parcel id instead, use
-     * {@see self::labelByParcelId()}.
+     * {@see self::labelByParcelId()}; to print a whole order (one label per parcel),
+     * use {@see self::labelByOrderId()}.
      *
      * @param string $merchantTracking The parcel's merchant tracking (sticker code).
      * @return string the raw PDF bytes
@@ -83,6 +84,25 @@ final class Orders extends AbstractResource
         return $this->connection->getRaw(
             '/api/v1/orders/label',
             array('parcel_id' => $parcelId),
+            'application/pdf'
+        );
+    }
+
+    /**
+     * Download a WHOLE order's labels as one PDF — one label per parcel of the order,
+     * in a single document. Addressed by the order's `order_id` (the order's tracking
+     * number, returned as `order_id` when you create the order). Use this to print a
+     * multi-parcel order in one call instead of fetching each parcel separately.
+     * Scope: `labels:read`.
+     *
+     * @param string $orderId The order's tracking number (e.g. STM0000000120).
+     * @return string the raw PDF bytes
+     */
+    public function labelByOrderId($orderId)
+    {
+        return $this->connection->getRaw(
+            '/api/v1/orders/label',
+            array('order_id' => $orderId),
             'application/pdf'
         );
     }
