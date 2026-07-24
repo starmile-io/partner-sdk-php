@@ -85,6 +85,20 @@ final class StatusPoolTest extends TestCase
 
         // No filter → the param is absent, so the whole feed is polled as before.
         $this->assertStringNotContainsString('tracking_number', $http->requests[1]['url']);
+        $this->assertStringNotContainsString('external_parent_id', $http->requests[1]['url']);
+    }
+
+    public function testChangesForwardsTheExternalParentIdFilter()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array(), 'next_cursor' => 0, 'has_more' => false));
+
+        // Track by the partner's own reference, no tracking number held.
+        $this->client($http)->statusPool()->changes(0, 100, null, 'PO-1001');
+
+        $this->assertStringContainsString('external_parent_id=PO-1001', $http->requests[1]['url']);
+        $this->assertStringNotContainsString('tracking_number', $http->requests[1]['url']);
     }
 
     public function testEachDrainsAcrossPagesUntilExhausted()

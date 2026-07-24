@@ -185,6 +185,12 @@ foreach ($starmile->statusPool()->each($since = 0) as $change) {
 foreach ($starmile->statusPool()->each($since = 0, $limit = 100, 'STM000123') as $change) {
     // only changes for tracking number STM000123
 }
+
+// Or track by YOUR OWN reference — pass the external_parent_id you sent on create,
+// so you never have to hold our tracking number:
+foreach ($starmile->statusPool()->each($since = 0, $limit = 100, null, 'PO-1001') as $change) {
+    // only changes for your order PO-1001
+}
 ```
 
 `external_parent_id` is your own reference for the **order**. `external_id` is your

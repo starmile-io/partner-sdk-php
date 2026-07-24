@@ -4,6 +4,17 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.9.0] - 2026-07-24
+
+### Added
+- **Filter the status pool by your own reference.** `statusPool()->changes()` and
+  `each()` take a new optional `$externalParentId` argument
+  (`GET /api/v1/partner/changes?external_parent_id={ref}`) that narrows the feed to
+  a single partner reference — the `external_parent_id` you sent on create — so you
+  can track an order by your own id without ever holding our `tracking_number`. It
+  composes with the cursor and may be combined with `$trackingNumber`. Unknown
+  references return an empty page, not an error.
+
 ## [6.8.0] - 2026-07-17
 
 ### Changed
