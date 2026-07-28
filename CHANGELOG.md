@@ -4,6 +4,30 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.11.0] - 2026-07-28
+
+### Added
+- **Status pool rows explain WHY a change happened.** Each row in
+  `GET /api/v1/partner/changes` now carries `reason` — a stable code from the new
+  `Enum\Reason` catalogue — and `reason_detail`, the free text a person wrote
+  alongside it. So a `customs_hold` arrives as `missing_declaration` and a
+  `delivery_failed` as `customer_absent`, instead of a bare status you have to ask
+  us about. Codes cover customs holds, failed deliveries and cancellations.
+- `Enum\Reason` — the reason codes as constants, so you compare against names
+  rather than magic strings.
+
+### Notes
+- **Both fields are frequently `null`** — most changes (a parcel received at a hub)
+  simply have no why. Never assume a reason is present.
+- **The catalogue grows.** Codes are permanent — never renamed, never reused — but
+  new ones are added over time. Treat an unrecognised code as "some other reason"
+  and fall back to `reason_detail` rather than failing.
+- **Reporting events:** where an event's `data` carries a `reason`, sending one of
+  these codes publishes it on the merchant's feed as a code they can act on
+  automatically. Any other wording is passed through untouched as free text — you
+  never have to force your own vocabulary into ours.
+- Purely additive: existing integrations that ignore the two fields are unaffected.
+
 ## [6.10.1] - 2026-07-24
 
 ### Changed
