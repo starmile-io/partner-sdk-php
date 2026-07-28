@@ -5,6 +5,7 @@ namespace Starmile\PartnerSdk\Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Starmile\PartnerSdk\Client;
 use Starmile\PartnerSdk\Configuration;
+use Starmile\PartnerSdk\Enum\Reason;
 use Starmile\PartnerSdk\Tests\Support\FakeHttpClient;
 
 final class StatusPoolTest extends TestCase
@@ -136,6 +137,81 @@ final class StatusPoolTest extends TestCase
         $this->client($http)->statusPool()->changes(0, 9999);
 
         $this->assertStringContainsString('limit=200', $http->requests[1]['url']);
+    }
+
+    public function testChangeRowExposesTheReasonPair()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array(
+            'data' => array(
+                array(
+                    'cursor' => 11,
+                    'tracking_number' => 'SM1',
+                    'status' => 'customs_hold',
+                    'previous_status' => 'customs_in_progress',
+                    'reason' => 'missing_declaration',
+                    'reason_detail' => null,
+                ),
+                array(
+                    'cursor' => 12,
+                    'tracking_number' => 'SM2',
+                    'status' => 'delivery_failed',
+                    'previous_status' => 'out_for_delivery',
+                    'reason' => 'customer_absent',
+                    'reason_detail' => 'no answer at the gate',
+                ),
+                array(
+                    'cursor' => 13,
+                    'tracking_number' => 'SM3',
+                    'status' => 'received_at_hub',
+                    'previous_status' => null,
+                    'reason' => null,
+                    'reason_detail' => null,
+                ),
+            ),
+            'next_cursor' => 13,
+            'has_more' => false,
+        ));
+
+        $changes = $this->client($http)->statusPool()->changes(0)->changes();
+
+        $this->assertSame(Reason::MISSING_DECLARATION, $changes[0]['reason']);
+        $this->assertNull($changes[0]['reason_detail']);
+
+        // A coded reason and a human's note can arrive together.
+        $this->assertSame(Reason::CUSTOMER_ABSENT, $changes[1]['reason']);
+        $this->assertSame('no answer at the gate', $changes[1]['reason_detail']);
+
+        // Most changes have no why at all — the fields are present but null, so
+        // an integration must never assume a reason is there.
+        $this->assertNull($changes[2]['reason']);
+        $this->assertNull($changes[2]['reason_detail']);
+    }
+
+    public function testAnUnrecognisedReasonCodeIsPassedThroughRatherThanRejected()
+    {
+        // The catalogue grows over time. A code this SDK version has never heard
+        // of must still reach the caller intact, so an integration can fall back
+        // to reason_detail instead of breaking on deploy day.
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array(
+            'data' => array(array(
+                'cursor' => 20,
+                'tracking_number' => 'SM4',
+                'status' => 'delivery_failed',
+                'reason' => 'some_future_reason',
+                'reason_detail' => 'a situation this SDK predates',
+            )),
+            'next_cursor' => 20,
+            'has_more' => false,
+        ));
+
+        $changes = $this->client($http)->statusPool()->changes(0)->changes();
+
+        $this->assertSame('some_future_reason', $changes[0]['reason']);
+        $this->assertSame('a situation this SDK predates', $changes[0]['reason_detail']);
     }
 
     private function client(FakeHttpClient $http)

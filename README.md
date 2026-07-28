@@ -173,7 +173,7 @@ it, in order. Persist the returned cursor to resume next time.
 // One page at a time:
 $page = $starmile->statusPool()->changes($since = 0, $limit = 100);
 foreach ($page->changes() as $change) {
-    // $change['cursor'], ['tracking_number'], ['external_parent_id'], ['external_id'], ['country'], ['status'], ['previous_status'], ['occurred_at'], ['timezone']
+    // $change['cursor'], ['tracking_number'], ['external_parent_id'], ['external_id'], ['country'], ['status'], ['previous_status'], ['reason'], ['reason_detail'], ['occurred_at'], ['timezone']
 }
 $next = $page->nextCursor();
 $more = $page->hasMore();
@@ -204,6 +204,44 @@ ISO-2 country the change occurred in (the hub's country), so you can tell an ori
 event (e.g. `CN`) apart from a destination one (e.g. `AZ`). `occurred_at` is a plain
 `Y-m-d H:i:s` timestamp (e.g. `2026-06-20 09:14:00`); `timezone` gives the IANA zone
 it is expressed in (e.g. `UTC`) — parse `occurred_at` in that zone.
+
+#### Why a change happened
+
+A change that has a reason carries `reason` — a stable code from `Enum\Reason` —
+and sometimes `reason_detail`, free text a person wrote. Branch on `reason`; show
+`reason_detail` to a human.
+
+```php
+use Starmile\PartnerSdk\Enum\Reason;
+
+foreach ($starmile->statusPool()->each($since = 0) as $change) {
+    switch ($change['reason']) {          // often null — most changes have no why
+        case Reason::CUSTOMER_ABSENT:
+            $this->offerRedelivery($change['external_parent_id']);
+            break;
+        case Reason::MISSING_DECLARATION:
+            $this->askShopperForInvoice($change['external_parent_id']);
+            break;
+        case null:
+            break;                        // nothing to explain — just a milestone
+        default:
+            // A code this SDK version predates. Codes are only ever ADDED, never
+            // renamed, so treat an unknown one as "some other reason" and fall
+            // back to the text rather than failing.
+            $this->flagForReview($change['reason'], $change['reason_detail']);
+    }
+}
+```
+
+Codes cover customs holds (`missing_declaration`, `inaccurate_information`,
+`prohibited_content_restricted_item`,
+`commercial_quantity_personal_allowance_exceeded`), failed deliveries
+(`customer_absent`, `address_not_found`, `customer_refused`,
+`could_not_reach_customer`, `wrong_or_incomplete_address`) and cancellations
+(`cancelled_by_partner`, `cancelled_by_customer`, `cancelled_by_operator`). When
+you report an event whose `data` carries a `reason`, sending one of these codes
+publishes it on the merchant's feed as a code they can act on automatically; any
+other wording is passed through untouched as free text.
 
 ### Inbound events
 
