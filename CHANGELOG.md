@@ -4,6 +4,32 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.12.0] - 2026-07-29
+
+### Changed
+- **An order's status feed now opens with the status it was created in.** The
+  create milestone (typically `waiting_for_arrival`) was never published, so a
+  feed silently began mid-journey — at whatever hub event came first, making a
+  parcel look as though it materialised already in transit. It is now the first
+  row for every new order, carrying `previous_status: null`.
+- **`previous_status` is nullable.** It is `null` on that first row, which has
+  nothing before it. Parcel-scoped rows already behaved this way.
+
+### Fixed
+- **The create status can no longer be republished as a later event.** With no
+  genesis row, the pool's once-per-(order, status) guard had nothing to match, so
+  a stray write back to `waiting_for_arrival` could be published as the NEWEST
+  change — a parcel appearing to un-arrive after a customs hold. Emitting the
+  create row closes that.
+
+### Notes
+- No SDK code change: rows are passed through verbatim. Purely additive for
+  integrations that drain by cursor — you will simply see one extra, earlier row
+  per new order.
+- **Forward-only.** Cursors are append-only, so orders created before this could
+  not be repaired retroactively: inserting their create row now would place it
+  *after* `delivered`. Existing feeds are unchanged.
+
 ## [6.11.0] - 2026-07-28
 
 ### Added
