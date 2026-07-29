@@ -196,6 +196,11 @@ foreach ($starmile->statusPool()->each($since = 0, $limit = 100, null, 'PO-1001'
 }
 ```
 
+An order's feed **opens with the status it was created in** (typically
+`waiting_for_arrival`), carrying `previous_status: null` — so the first row you
+read for an order is always the point we took it on, not whichever hub event came
+first. `previous_status` is non-null on every row after that.
+
 `external_parent_id` is your own reference for the **order**. `external_id` is your
 reference for a single **parcel** (the `item_id` you sent on create) and is present
 only on parcel-scoped changes — e.g. a parcel received at the hub — so you can act
