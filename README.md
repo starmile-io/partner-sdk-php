@@ -117,7 +117,15 @@ $created = $starmile->orders()->create($order);
 echo $created['order_id'];              // STM… (our order id)
 echo $created['region_status'];         // mapped | pending_mapping | not_applicable
 echo $created['items'][0]['parcel_id']; // STM… (our parcel id for your item_id)
+var_dump($created['duplicate']);        // false — true when the order_id was already used
 ```
+
+Creating an order is **idempotent on your `order_id`**. Re-sending one you already
+used (a retry after a timeout, a double submit) creates nothing: the original order
+is replayed — HTTP `200` instead of `201`, `duplicate` is `true`, and `order_id`,
+`region_status` and `items[]` are exactly what you got the first time. Use it to
+recover our ids when you are unsure a create landed; to change an accepted order,
+use `updateParcel()` instead — the rest of the body is ignored on a replay.
 
 For a **Home Delivery** service the destination region is resolved from your own
 `(parent_region, region)` reference, map-only per partner. If it is not mapped yet
@@ -320,7 +328,8 @@ By default the SDK retries **safe (GET)** requests on transient failures —
 network errors, `429`, and `5xx` — with exponential backoff + jitter, honoring a
 `Retry-After` header. Non-idempotent writes (`POST /orders`, `POST /partner/events`)
 are **never** retried automatically, so a flaky response can't create a duplicate
-order. Tune or disable this with `max_attempts` (see options above).
+order. Tune or disable this with `max_attempts` (see options above). Creating an
+order is safe to retry either way — it is idempotent on your `order_id`.
 
 When you *do* want a write retried, opt in per call with `retry()` — mirroring
 Laravel's HTTP client. It returns a one-off client; the original is unchanged:
