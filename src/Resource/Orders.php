@@ -38,6 +38,13 @@ final class Orders extends AbstractResource
      * `merchant_tracking`. Reusing one that already exists under a different order
      * (or repeating one across parcels in the same order) is rejected `422`.
      *
+     * One case is deliberately NOT a duplicate: a package that reached the hub
+     * BEFORE you registered it. It is received anyway and held as an unidentified
+     * package under the barcode on the box, so creating the order with that same
+     * `merchant_tracking` is accepted — the waiting package is matched to it and
+     * goes straight to `received_at_hub` instead of `waiting_for_arrival`. Send the
+     * order as usual even when the goods arrived first.
+     *
      * Re-sending an `order_id` you already used is SAFE — the call is idempotent on
      * it. Nothing is created: the original order is replayed with HTTP `200` (not
      * `201`) and `duplicate` = true, carrying the same `order_id`, `region_status`

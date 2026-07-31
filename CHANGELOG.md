@@ -4,6 +4,27 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.14.0] - 2026-07-31
+
+### Changed
+- **A package that arrived before you registered it no longer blocks its own
+  order.** When goods reach the hub with no matching record they are received as
+  an unidentified package under the barcode on the box. Creating the order with
+  that same `merchant_tracking` used to be rejected `422` ("An order already
+  exists for merchant_tracking: …") — the waiting package blocked the very order
+  that would explain it. It is now accepted, and the waiting package is matched
+  to the new order automatically.
+- **Such a parcel starts at `received_at_hub`, not `waiting_for_arrival`.** It is
+  already physically in the warehouse, so its first status reflects that. Code
+  that assumes a freshly created parcel is always `waiting_for_arrival` should
+  read the status rather than assume it.
+
+### Notes
+- No SDK signature change. Nothing to do differently: send the order as usual,
+  even when the goods arrived first.
+- Ordinary duplicates are unchanged — reusing an `item_id` or a
+  `merchant_tracking` that belongs to another order is still rejected `422`.
+
 ## [6.13.0] - 2026-07-31
 
 ### Added
