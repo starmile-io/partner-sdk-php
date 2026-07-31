@@ -4,6 +4,32 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.13.0] - 2026-07-31
+
+### Added
+- **Creating an order is now idempotent on your `order_id`.** Re-sending an
+  `order_id` you already used no longer fails: nothing is created and the
+  original order is replayed — HTTP `200` instead of `201`, with the same
+  `order_id`, `region_status` and `items`. This is the fallback for a retry after
+  a timeout or a double submit, where the first attempt was accepted but you
+  never saw the response.
+- **`data.duplicate`** on the create response — `true` when the response replays
+  an order that already existed for the `order_id` sent, `false` on a normal
+  create. Present on both outcomes, so a client that ignores the status code
+  still reads the right ids.
+
+### Changed
+- **A re-sent `order_id` is no longer a `422`.** Previously it was rejected with
+  "An order already exists with order_id: …". Code that treats that message as a
+  terminal error can drop the special case; a `ValidationException` is no longer
+  raised for it. Per-parcel uniqueness is unchanged: reusing an `item_id` or a
+  `merchant_tracking` under a DIFFERENT order is still rejected `422`.
+
+### Notes
+- No SDK signature change — `Orders::create()` returns the same array, now with
+  the extra `duplicate` key. Check it (or the HTTP status) when you need to know
+  whether the call created the order or replayed one.
+
 ## [6.12.0] - 2026-07-29
 
 ### Changed

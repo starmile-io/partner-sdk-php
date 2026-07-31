@@ -104,6 +104,51 @@ final class OrdersTest extends TestCase
         $this->assertSame('STM000200', $created['order_id']);
     }
 
+    public function testAResentOrderIdReplaysTheOriginalOrderInsteadOfFailing()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        // The create is idempotent on the partner's own order_id: a repeat (a retry
+        // after a timeout) creates nothing and replays the original order with 200
+        // and duplicate = true — it is NOT a 422 any more.
+        $http->queueJson(200, array('data' => array(
+            'order_id' => 'STM000300',
+            'duplicate' => true,
+            'region_status' => 'not_applicable',
+            'items' => array(array('item_id' => 'ITEM-1', 'parcel_id' => 'STM000301')),
+        )));
+
+        $order = OrderBuilder::make(7, 'ORD-ALREADY-SENT')
+            ->deliverToPudo(42)
+            ->addParcel(ParcelBuilder::make('ITEM-1')->addProduct(ProductBuilder::make('Shoes')));
+
+        $created = $this->client($http)->orders()->create($order);
+
+        $this->assertTrue($created['duplicate']);
+        $this->assertSame('STM000300', $created['order_id']);
+        $this->assertSame('STM000301', $created['items'][0]['parcel_id']);
+    }
+
+    public function testACreateReportsItselfAsNotADuplicate()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(201, array('data' => array(
+            'order_id' => 'STM000400',
+            'duplicate' => false,
+            'region_status' => 'not_applicable',
+            'items' => array(),
+        )));
+
+        $order = OrderBuilder::make(7, 'ORD-FRESH')
+            ->deliverToPudo(42)
+            ->addParcel(ParcelBuilder::make('ITEM-1')->addProduct(ProductBuilder::make('Shoes')));
+
+        $created = $this->client($http)->orders()->create($order);
+
+        $this->assertFalse($created['duplicate']);
+    }
+
     public function testUpdateParcelEncodesReferencesInThePath()
     {
         $http = new FakeHttpClient();
