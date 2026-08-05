@@ -56,6 +56,21 @@ final class Reason
     /** The address is wrong or missing details needed to deliver. */
     const WRONG_OR_INCOMPLETE_ADDRESS = 'wrong_or_incomplete_address';
 
+    /** The recipient could not confirm the one-time code at handover. */
+    const OTP_VERIFICATION_FAILED = 'otp_verification_failed';
+
+    /** The phone number given for the recipient is wrong. */
+    const CONTACT_INFO_INCORRECT = 'contact_info_incorrect';
+
+    /** The recipient asked to be delivered to on a later day. */
+    const RESCHEDULE_REQUESTED = 'reschedule_requested';
+
+    /** The recipient asked to collect from a pick-up point instead. */
+    const PUDO_PICKUP_REQUESTED = 'pudo_pickup_requested';
+
+    /** The courier could not complete the delivery that day. */
+    const COURIER_UNABLE_TO_DELIVER = 'courier_unable_to_deliver';
+
     // --- Cancellations (status: cancelled) -----------------------------------
 
     /** You cancelled the order or parcel through the API. */

@@ -4,6 +4,20 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.15.0] - 2026-08-06
+
+### Added
+- **Five more reasons a delivery can fail.** When a parcel is delivered by one of
+  our delivery partners rather than our own couriers, they report failures in more
+  detail than before, and `reason` on the status feed now carries that detail:
+  `otp_verification_failed` (the recipient could not confirm the one-time code at
+  handover), `contact_info_incorrect` (the phone number given is wrong),
+  `reschedule_requested` (the recipient asked for a later day),
+  `pudo_pickup_requested` (they would rather collect from a pick-up point) and
+  `courier_unable_to_deliver` (the courier could not finish that day). Existing
+  codes are unchanged. As always, treat an unrecognised code as "some other
+  reason" — the list grows.
+
 ## [6.14.0] - 2026-07-31
 
 ### Changed
