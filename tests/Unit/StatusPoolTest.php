@@ -228,6 +228,17 @@ final class StatusPoolTest extends TestCase
         $this->assertSame('courier_unable_to_deliver', Reason::COURIER_UNABLE_TO_DELIVER);
     }
 
+    /**
+     * Our own couriers distinguish "nobody answered" from "never made contact",
+     * so the two arrive as different codes. Branching on the wrong one would
+     * misreport why a delivery failed.
+     */
+    public function testCustomerNoAnswerIsDistinctFromCouldNotReachCustomer()
+    {
+        $this->assertSame('customer_no_answer', Reason::CUSTOMER_NO_ANSWER);
+        $this->assertNotSame(Reason::COULD_NOT_REACH_CUSTOMER, Reason::CUSTOMER_NO_ANSWER);
+    }
+
     private function client(FakeHttpClient $http)
     {
         return new Client(new Configuration('id', 'secret', array('http_client' => $http, 'max_attempts' => 1)));

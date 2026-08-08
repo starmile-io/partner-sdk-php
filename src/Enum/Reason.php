@@ -53,6 +53,9 @@ final class Reason
     /** The courier could not contact the recipient. */
     const COULD_NOT_REACH_CUSTOMER = 'could_not_reach_customer';
 
+    /** The courier reached the recipient's number or door, but nobody answered. */
+    const CUSTOMER_NO_ANSWER = 'customer_no_answer';
+
     /** The address is wrong or missing details needed to deliver. */
     const WRONG_OR_INCOMPLETE_ADDRESS = 'wrong_or_incomplete_address';
 

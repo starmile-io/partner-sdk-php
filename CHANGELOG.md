@@ -4,6 +4,15 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.16.0] - 2026-08-08
+
+### Added
+- **A new reason a delivery can fail: `customer_no_answer`.** Our own couriers now
+  separate "nobody answered" from "we never made contact", so `reason` on the
+  status feed can carry either. If you branch on `could_not_reach_customer`, add
+  `customer_no_answer` alongside it — both mean the recipient was not reached, but
+  only the second means contact was never established.
+
 ## [6.15.0] - 2026-08-06
 
 ### Added
