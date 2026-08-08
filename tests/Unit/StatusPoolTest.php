@@ -214,6 +214,31 @@ final class StatusPoolTest extends TestCase
         $this->assertSame('a situation this SDK predates', $changes[0]['reason_detail']);
     }
 
+    /**
+     * A delivery partner reports a failure in far more detail than "not delivered".
+     * These are the codes that detail arrives as; they are a published contract, so
+     * a rename would silently break every integration branching on them.
+     */
+    public function testDeliveryPartnerFailureReasonsArePublished()
+    {
+        $this->assertSame('otp_verification_failed', Reason::OTP_VERIFICATION_FAILED);
+        $this->assertSame('contact_info_incorrect', Reason::CONTACT_INFO_INCORRECT);
+        $this->assertSame('reschedule_requested', Reason::RESCHEDULE_REQUESTED);
+        $this->assertSame('pudo_pickup_requested', Reason::PUDO_PICKUP_REQUESTED);
+        $this->assertSame('courier_unable_to_deliver', Reason::COURIER_UNABLE_TO_DELIVER);
+    }
+
+    /**
+     * Our own couriers distinguish "nobody answered" from "never made contact",
+     * so the two arrive as different codes. Branching on the wrong one would
+     * misreport why a delivery failed.
+     */
+    public function testCustomerNoAnswerIsDistinctFromCouldNotReachCustomer()
+    {
+        $this->assertSame('customer_no_answer', Reason::CUSTOMER_NO_ANSWER);
+        $this->assertNotSame(Reason::COULD_NOT_REACH_CUSTOMER, Reason::CUSTOMER_NO_ANSWER);
+    }
+
     private function client(FakeHttpClient $http)
     {
         return new Client(new Configuration('id', 'secret', array('http_client' => $http, 'max_attempts' => 1)));
