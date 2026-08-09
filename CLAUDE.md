@@ -8,7 +8,7 @@
 
 ## Product context
 
-- Starmile is a **cross-border logistics platform**. It is **multi-tenant by company**: each company (a partner's per-country entity, and the customer itself) has its **own tenant DB**, with isolation enforced at the database layer; a shared **global (landlord) DB** holds partners, the companies registry, reference data, and flow definitions. Hosted on **Laravel Cloud**.
+- Starmile is a **cross-border logistics platform**. It is **multi-tenant by company**: each company (a partner's per-country entity, and the customer itself) has its **own tenant DB**, with isolation enforced at the database layer; a shared **global (landlord) DB** holds partners, the companies registry, reference data, and flow definitions. Hosted on a **self-managed dedicated server**.
 
 ## Session Naming
 
@@ -32,7 +32,7 @@
 ## Testing (Always Write Tests)
 
 - CRITICAL: every task — feature, bug fix, or change — ships with tests in the **same change**; a bug fix **starts** with a test that reproduces the bug. Never commit with failing tests.
-- Passing unit/component tests is the **floor, not the finish**: they do not catch build, type, or render errors. After any change you MUST also **verify the thing actually runs** (typecheck, and for UI load the affected route(s) and confirm they return `200` and render with no build/runtime/console error) before reporting done or committing. Stack-specific test commands are in the repo-specific section below.
+- Passing unit/component tests is the **floor, not the finish**: they do not catch build, type, or render errors. After any change you MUST also **verify it actually builds** — run the stack's **production build / typecheck**, which is what catches those. For a UI the **build is the verification**: do NOT stand up a long-running dev server just to check your own work. Do this before reporting done or committing. Stack-specific commands are in the repo-specific section below.
 
 ## Quality Bar & Finishing (apply by default — do not wait to be asked)
 
