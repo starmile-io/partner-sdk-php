@@ -53,6 +53,12 @@
 - **The codebase wins.** Where a page and the implementation disagree, the implementation is correct — fix the page, and say so. Never edit code to match a stale page.
 - Authoring mechanics: Notion-flavoured Markdown is **not** plain Markdown — pipe tables do not render (use the `<table>`/`<tr>`/`<td>` block syntax) and `{ } < > | ^` need escaping outside code blocks. Read `notion://docs/enhanced-markdown-spec` through the Notion `fetch` tool before authoring a page.
 
+## Before you build it, find what already does it (CRITICAL)
+
+- CRITICAL: **read the surrounding code before adding to it.** Before building a capability, search for one that already exists and follow it to its CALL SITES — not just the class you happen to be editing. A duplicate is worse than a gap: both paths fire, they drift apart, and neither is authoritative.
+- Concretely, before adding anything: (1) grep the **concept**, not just a class name (`alert`, `notify`, `chat`, `webhook`, `retry`); (2) **trace every dependency already injected into the file you are touching** to where it is used — an unfamiliar constructor argument is a signal you have not read enough yet; (3) check the config/schema that already declares similar fields; (4) if something exists, **extend or replace it in the SAME change** — never leave both.
+- Standing rule because it has already bitten: a Google Chat declaration-failure alert was built while an existing one sat **three lines away in the same method**, reached through an already-injected `GoogleChatNotifier` that was seen but never traced. It stayed invisible only because that webhook was unconfigured — configuring both would have posted every failure twice.
+
 <!-- ═══ END COMMON STARMILE RULES ═══ -->
 
 ---
