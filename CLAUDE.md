@@ -22,7 +22,7 @@
 
 ## Documentation Rules
 
-- ALL documentation is written in **English, always** — regardless of the language used in the request or conversation (code comments, READMEs, commit messages, Linear, the glossary, any written docs). Keep it well-structured and easy to understand, with concrete examples where helpful.
+- ALL documentation is written in **English, always** — regardless of the language used in the request or conversation (code comments, READMEs, commit messages, Notion, the glossary, any written docs). Keep it well-structured and easy to understand, with concrete examples where helpful.
 
 ## Accuracy Rule (Do Not Invent)
 
@@ -41,14 +41,17 @@
 
 ## Glossary Rule
 
-- CRITICAL: whenever a business keyword, domain term, or new business concept is introduced (by the user or discovered in the work), record it in the relevant **per-feature Linear glossary** — a `<Feature> — Glossary` document (`00 —` prefix so it sorts to the top of its project). Don't leave business terms only inline in code/docs. Keep each glossary a compact table: term, short meaning, example/note.
+- CRITICAL: whenever a business keyword, domain term, or new business concept is introduced (by the user or discovered in the work), record it in the relevant **per-section Notion glossary** — the `00 — Glossary` page at the top of that section page. Don't leave business terms only inline in code/docs. Keep each glossary a compact table: term, short meaning, example/note.
 
-## Linear (Project Management)
+## Notion (Documentation)
 
-- Linear is the **source of truth** for project management. Workspace `star-tech`; team key **`STRMILE`** (always reference the team by its key, never its display name). Use the Linear MCP for all reads and writes.
-- CRITICAL: keep Linear up to date **autonomously** — whenever scope, requirements, structure, or status change in the work or the conversation, reflect it immediately, in the **same turn**, **without asking** the user. Do NOT use initiatives — organize everything with **projects + milestones** only.
-- Linear holds **business documentation only — never technical** content (no code, schemas, table/column names, file/module paths, API endpoints/payloads, framework/infra detail, or implementation notes). Write in plain business language a non-engineer can read end-to-end. Organize projects by **application/module** (e.g. Management panel, Console, Ops app); each capability/area is a **milestone**.
-- Every Linear **Document** is bound to a **project** (never left at team level), numbered **`NN — <Title>`** (`00 —` Glossary, `99 —` overview, capabilities in between), and **opens with a simple business-flow diagram** — a Mermaid ` ```mermaid ` block, default `flowchart TD`, business steps only (no code/DB/infra). One project → many documents (an overview plus one per capability). Whenever a Document is created or changed, **post a Project update** to its project summarizing the change.
+- Notion is the **source of truth** for product & business documentation. Everything lives under the **Starmile** page — <https://app.notion.com/p/3b74a84901a080a98f4af9c1e33fdd21>. Use the Notion MCP for all reads and writes. (Documentation moved off Linear on 2026-08-09; Linear is no longer written to.)
+- CRITICAL: keep Notion up to date **autonomously** — whenever scope, requirements, structure, or behaviour change in the work or the conversation, reflect it immediately, in the **same turn**, **without asking** the user.
+- Notion holds **business documentation only — never technical** content (no code, schemas, table/column names, file/module paths, API endpoints/payloads, framework/infra detail, or implementation notes). Write in plain business language a non-engineer can read end-to-end. Organize by **application/module** — one **section page** per app (Console, Management Panel, Courier App, …); each capability/area is a **page inside that section**.
+- Every documentation **page** is bound to a **section page** (never loose at the top level), numbered **`NN — <Title>`** (`00 —` Glossary, `99 —` overview, capabilities in between), and **opens with a simple business-flow diagram** — a Mermaid ` ```mermaid ` block, default `flowchart TD`, business steps only (no code/DB/infra). One section → many pages (an overview plus one per capability).
+- Whenever a page is **created, renamed, or removed**, update the **Table of Contents** page under Starmile in the **same change**, so every page stays one click from the top.
+- **The codebase wins.** Where a page and the implementation disagree, the implementation is correct — fix the page, and say so. Never edit code to match a stale page.
+- Authoring mechanics: Notion-flavoured Markdown is **not** plain Markdown — pipe tables do not render (use the `<table>`/`<tr>`/`<td>` block syntax) and `{ } < > | ^` need escaping outside code blocks. Read `notion://docs/enhanced-markdown-spec` through the Notion `fetch` tool before authoring a page.
 
 <!-- ═══ END COMMON STARMILE RULES ═══ -->
 
