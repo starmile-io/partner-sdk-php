@@ -4,6 +4,24 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.17.0] - 2026-08-10
+
+### Changed
+- **Setting `merchant_tracking` late no longer fails when the package beat it to
+  the hub.** If the box had already arrived under that barcode and was being held
+  as an unidentified package, `updateParcel()` now MATCHES the two together
+  instead of returning a server error: the parcel keeps its own tracking number,
+  the reference it previously carried stays searchable, and it moves straight to
+  `received_at_hub` on the status feed. Nothing changes in how you call it — send
+  the tracking as usual, even if the goods arrived first.
+- **A genuine `merchant_tracking` conflict is now a clean `422`.** A barcode
+  already held by another of your parcels comes back as a `422` with a `message`
+  and nothing is changed, instead of a `500`.
+
+### Fixed
+- `Client::VERSION` was left at `6.15.0` when 6.16.0 was released; it now tracks
+  the released version again (it is what the default `User-Agent` reports).
+
 ## [6.16.0] - 2026-08-08
 
 ### Added

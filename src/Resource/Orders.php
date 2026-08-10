@@ -125,6 +125,14 @@ final class Orders extends AbstractResource
      * Sending `products` REPLACES the parcel's full product list. 409 once the order
      * has moved past its first step (e.g. the parcel has been received).
      *
+     * Sending a `merchant_tracking` late is the mirror of the create case (see
+     * {@see self::create()}): if the package already reached the hub under that
+     * barcode and is held as an unidentified package, it is MATCHED to this parcel
+     * rather than rejected — the parcel keeps its own tracking number, the reference
+     * it previously carried stays searchable, and it goes straight to
+     * `received_at_hub`. A `merchant_tracking` already held by another of your
+     * parcels is still a conflict: 422, with nothing changed.
+     *
      * @param string                $orderId    The partner's order reference (order_id).
      * @param string                $itemId     The partner's parcel reference (item_id).
      * @param array<string, mixed>  $changes    Any of: merchant_tracking, package_type,

@@ -28,7 +28,7 @@ use Starmile\PartnerSdk\Retry\RetryPolicy;
 final class Client
 {
     /** The SDK version (sent in the User-Agent). */
-    const VERSION = '6.15.0';
+    const VERSION = '6.17.0';
 
     /** @var Configuration */
     private $configuration;
