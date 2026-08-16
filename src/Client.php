@@ -28,7 +28,7 @@ use Starmile\PartnerSdk\Retry\RetryPolicy;
 final class Client
 {
     /** The SDK version (sent in the User-Agent). */
-    const VERSION = '6.17.0';
+    const VERSION = '6.18.0';
 
     /** @var Configuration */
     private $configuration;
@@ -50,6 +50,9 @@ final class Client
 
     /** @var Events|null */
     private $events;
+
+    /** @var V2|null */
+    private $v2;
 
     public function __construct(Configuration $configuration)
     {
@@ -111,6 +114,7 @@ final class Client
         $clone->orders = null;
         $clone->statusPool = null;
         $clone->events = null;
+        $clone->v2 = null;
 
         return $clone;
     }
@@ -189,5 +193,21 @@ final class Client
     public function getTokenManager()
     {
         return $this->tokenManager;
+    }
+
+    /**
+     * The /api/v2 surface — the sub_orders vocabulary. v1 and v2 are separate
+     * contracts (different bodies, a different status-pool cursor space); pick
+     * one per integration. See {@see V2}.
+     *
+     * @return V2
+     */
+    public function v2()
+    {
+        if ($this->v2 === null) {
+            $this->v2 = new V2($this->connection);
+        }
+
+        return $this->v2;
     }
 }
