@@ -9,7 +9,7 @@ use Starmile\PartnerSdk\Resource\AbstractResource;
 /**
  * The v2 status pool (scope: `status:read`).
  *
- *   GET /api/v2/partner/changes?since={cursor}&limit={n}&tracking_number={tn}&external_parent_id={ref}
+ *   GET /api/v2/partner/changes?since={cursor}&limit={n}&tracking_number={tn}&order_id={ref}
  *
  * Same polling model as v1 — page with the cursor you last processed — with
  * two versioned differences you must not mix across versions:
@@ -33,10 +33,10 @@ final class StatusPool extends AbstractResource
      * @param int $since Cursor of the last change you processed (0 to start).
      * @param int $limit Page size (1–200).
      * @param string|null $trackingNumber Narrow to one Starmile tracking number; null for the whole feed.
-     * @param string|null $externalParentId Narrow to one of your own order references; null to not filter.
+     * @param string|null $orderId Narrow to one of your own order references; null to not filter.
      * @return StatusChangePage
      */
-    public function changes($since = 0, $limit = 100, $trackingNumber = null, $externalParentId = null)
+    public function changes($since = 0, $limit = 100, $trackingNumber = null, $orderId = null)
     {
         $query = array(
             'since' => max(0, (int) $since),
@@ -47,8 +47,8 @@ final class StatusPool extends AbstractResource
             $query['tracking_number'] = (string) $trackingNumber;
         }
 
-        if ($externalParentId !== null && $externalParentId !== '') {
-            $query['external_parent_id'] = (string) $externalParentId;
+        if ($orderId !== null && $orderId !== '') {
+            $query['order_id'] = (string) $orderId;
         }
 
         $response = $this->connection->get('/api/v2/partner/changes', $query);
@@ -63,15 +63,15 @@ final class StatusPool extends AbstractResource
      * @param int $since
      * @param int $limit
      * @param string|null $trackingNumber
-     * @param string|null $externalParentId
+     * @param string|null $orderId Narrow to one of your own order references.
      * @return Generator<int, array<string, mixed>>
      */
-    public function each($since = 0, $limit = 100, $trackingNumber = null, $externalParentId = null)
+    public function each($since = 0, $limit = 100, $trackingNumber = null, $orderId = null)
     {
         $cursor = max(0, (int) $since);
 
         do {
-            $page = $this->changes($cursor, $limit, $trackingNumber, $externalParentId);
+            $page = $this->changes($cursor, $limit, $trackingNumber, $orderId);
 
             foreach ($page->changes() as $change) {
                 yield $change;

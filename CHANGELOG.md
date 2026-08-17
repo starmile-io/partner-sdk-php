@@ -13,7 +13,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   both request and response (the same per-box key v1 uses), the management
   paths are `/api/v2/orders/{order}/items/{item}` (`updateItem()` /
   `cancelItem()`), and the status-pool row carries `order_id` + `item_id`
-  (v1: `external_parent_id` + `external_id`).
+  (v1: `external_parent_id` + `external_id`), and the pool FILTER parameter is
+  `order_id` too (`changes($since, $limit, $trackingNumber, $orderId)`).
 
 ## [6.18.0] - 2026-08-16
 
