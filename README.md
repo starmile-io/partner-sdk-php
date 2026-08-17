@@ -76,7 +76,7 @@ scopes on your credential.
 | `$starmile->events()`   | `events:transport`, `events:pudo`, `events:customs`, `leg:handoff`| `POST /api/v1/partner/events` |
 
 The same four groups exist on **API v2** under `$starmile->v2()` — see
-[API v2 — items / sub_orders](#api-v2--items--sub_orders).
+[API v2 — items / items](#api-v2--items--items).
 
 ### Catalogue
 
@@ -291,19 +291,19 @@ EventType::scopeFor(EventType::CUSTOMS_HELD);         // 'events:customs'
 EventType::dataFieldsFor(EventType::SHIPMENT_DELIVERED); // ['note','recipient_name','signed_by','proof_of_delivery']
 ```
 
-## API v2 — items / sub_orders
+## API v2 — items / items
 
 `$starmile->v2()` reaches the `/api/v2` surface. The scopes and polling model
 are the same as v1; the vocabulary differs:
 
-- The box array is `sub_orders[]` (v1: `parcels[]`), and your per-box reference
-  is `sub_order_id` (v1: `item_id`).
+- The box array is `items[]` (v1: `parcels[]`), and your per-box reference
+  is `item_id` (v1: `item_id`).
 - The create response returns our order reference as `tracking_number`, echoes
-  your own `order_id`, and each sub-order carries **no Starmile tracking number
-  of its own** — you address it by your `sub_order_id` or its
+  your own `order_id`, and each item carries **no Starmile tracking number
+  of its own** — you address it by your `item_id` or its
   `merchant_tracking` only.
 - Status-pool rows name your order reference `order_id` (v1:
-  `external_parent_id`) and the sub-order reference `sub_order_id` (v1:
+  `external_parent_id`) and the item reference `item_id` (v1:
   `external_id`). The status vocabulary is identical to v1.
 
 ```php
@@ -313,16 +313,16 @@ $created = $starmile->v2()->orders()->create(array(
     'customer_email' => 'buyer@example.com',
     'items'          => array(
         array(
-            'sub_order_id'      => 'BOX-1',
+            'item_id'      => 'BOX-1',
             'merchant_tracking' => 'MT-0001',
             'products'          => array(array('name' => 'Widget')),
         ),
     ),
 ));
 
-// $created['tracking_number'] — our reference; $created['items'][0]['sub_order_id'] — yours.
+// $created['tracking_number'] — our reference; $created['items'][0]['item_id'] — yours.
 
-$starmile->v2()->orders()->updateSubOrder('PO-1001', 'BOX-1', array('weight_grams' => 900));
+$starmile->v2()->orders()->updateItem('PO-1001', 'BOX-1', array('weight_grams' => 900));
 
 foreach ($starmile->v2()->statusPool()->each(0) as $change) {
     // $change['order_id'] is YOUR reference on v2.

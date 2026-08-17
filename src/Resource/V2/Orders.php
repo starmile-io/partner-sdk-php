@@ -5,14 +5,14 @@ namespace Starmile\PartnerSdk\Resource\V2;
 use Starmile\PartnerSdk\Resource\AbstractResource;
 
 /**
- * Order intake and management on /api/v2 — the items/sub_order vocabulary
+ * Order intake and management on /api/v2 — the items/item vocabulary
  * (scopes: orders:create / orders:update / orders:cancel / labels:read).
  *
  * v2 renames the box array: v1's `parcels[]` is `items[]`, and your
- * per-box reference `item_id` is `sub_order_id`. A sub-order carries NO
+ * per-box reference `item_id` is `item_id`. An item carries NO
  * Starmile tracking number of its own — you address it by your own
- * `sub_order_id` (or its `merchant_tracking`), and the create response echoes
- * exactly those two fields per sub-order. The order-level Starmile reference
+ * `item_id` (or its `merchant_tracking`), and the create response echoes
+ * exactly those two fields per item. The order-level Starmile reference
  * is returned as `tracking_number`, and your own order reference is echoed
  * back as `order_id` (v1 overloaded `order_id` with our tracking number).
  */
@@ -25,7 +25,7 @@ final class Orders extends AbstractResource
      * `duplicate` = true instead of failing.
      *
      * @param array<string, mixed> $order
-     * @return array{tracking_number: string, order_id: string, duplicate: bool, region_status: string, items: list<array{sub_order_id: ?string, merchant_tracking: ?string}>}
+     * @return array{tracking_number: string, order_id: string, duplicate: bool, region_status: string, items: list<array{item_id: ?string, merchant_tracking: ?string}>}
      */
     public function create(array $order)
     {
@@ -33,7 +33,7 @@ final class Orders extends AbstractResource
     }
 
     /**
-     * Download a single sub-order's label PDF, addressed by its
+     * Download a single item's label PDF, addressed by its
      * `merchant_tracking` (the sticker code you sent). Scope: `labels:read`.
      *
      * @param string $merchantTracking
@@ -65,36 +65,36 @@ final class Orders extends AbstractResource
     }
 
     /**
-     * Update a sub-order while its order is still at the flow's first step
+     * Update a item while its order is still at the flow's first step
      * (partial; `products` replaces the full list). Addressed entirely by YOUR
-     * references — your `order_id` and your `sub_order_id`.
+     * references — your `order_id` and your `item_id`.
      *
      * @param string               $orderId    Your order reference.
-     * @param string               $subOrderId Your sub-order reference.
+     * @param string               $itemId Your item reference.
      * @param array<string, mixed> $changes    Any of: merchant_tracking, package_type,
      *                                         weight_grams, length_mm, width_mm,
      *                                         height_mm, products[].
      * @return array<string, mixed>
      */
-    public function updateSubOrder($orderId, $subOrderId, array $changes)
+    public function updateItem($orderId, $itemId, array $changes)
     {
-        $path = '/api/v2/orders/' . rawurlencode($orderId) . '/sub-orders/' . rawurlencode($subOrderId);
+        $path = '/api/v2/orders/' . rawurlencode($orderId) . '/items/' . rawurlencode($itemId);
 
         return $this->unwrap($this->connection->patch($path, $changes));
     }
 
     /**
-     * Cancel a single sub-order while it is still at the flow's first step.
-     * When it is the order's last active sub-order, the order cancels with it.
+     * Cancel a single item while it is still at the flow's first step.
+     * When it is the order's last active item, the order cancels with it.
      *
      * @param string      $orderId    Your order reference.
-     * @param string      $subOrderId Your sub-order reference.
+     * @param string      $itemId Your item reference.
      * @param string|null $reason     Optional free-text cancellation reason.
      * @return array<string, mixed>
      */
-    public function cancelSubOrder($orderId, $subOrderId, $reason = null)
+    public function cancelItem($orderId, $itemId, $reason = null)
     {
-        $path = '/api/v2/orders/' . rawurlencode($orderId) . '/sub-orders/' . rawurlencode($subOrderId) . '/cancel';
+        $path = '/api/v2/orders/' . rawurlencode($orderId) . '/items/' . rawurlencode($itemId) . '/cancel';
         $body = $reason === null ? array() : array('reason' => $reason);
 
         return $this->unwrap($this->connection->post($path, $body));

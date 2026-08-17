@@ -196,7 +196,7 @@ final class Client
     }
 
     /**
-     * The /api/v2 surface — the items/sub_order vocabulary. v1 and v2 are separate
+     * The /api/v2 surface — the items/item vocabulary. v1 and v2 are separate
      * contracts (different bodies, a different status-pool cursor space); pick
      * one per integration. See {@see V2}.
      *

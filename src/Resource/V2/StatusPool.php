@@ -18,7 +18,7 @@ use Starmile\PartnerSdk\Resource\AbstractResource;
  *     from v1 means nothing here: when you migrate, start from `since = 0`
  *     (or from a filtered drain) and dedupe on (tracking_number, status).
  *   - Each row names your own order reference `order_id` (v1: external_parent_id)
- *     and the sub-order reference `sub_order_id` (v1: external_id).
+ *     and the item reference `item_id` (v1: external_id).
  *
  * The status VOCABULARY is identical to v1, including the customs strings.
  */

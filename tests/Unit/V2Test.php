@@ -18,7 +18,7 @@ final class V2Test extends TestCase
             'order_id' => 'PO-1001',
             'duplicate' => false,
             'region_status' => 'not_applicable',
-            'items' => array(array('sub_order_id' => 'BOX-1', 'merchant_tracking' => 'MT-1')),
+            'items' => array(array('item_id' => 'BOX-1', 'merchant_tracking' => 'MT-1')),
         )));
 
         $created = $this->client($http)->v2()->orders()->create(array(
@@ -26,7 +26,7 @@ final class V2Test extends TestCase
             'order_id' => 'PO-1001',
             'customer_email' => 'buyer@example.com',
             'items' => array(array(
-                'sub_order_id' => 'BOX-1',
+                'item_id' => 'BOX-1',
                 'merchant_tracking' => 'MT-1',
                 'products' => array(array('name' => 'Shoes')),
             )),
@@ -34,14 +34,14 @@ final class V2Test extends TestCase
 
         $this->assertSame('STM000123', $created['tracking_number']);
         $this->assertSame('PO-1001', $created['order_id']);
-        $this->assertSame('BOX-1', $created['items'][0]['sub_order_id']);
+        $this->assertSame('BOX-1', $created['items'][0]['item_id']);
         // No per-box Starmile tracking exists on v2 — the key is simply absent.
         $this->assertArrayNotHasKey('parcel_id', $created['items'][0]);
 
         $last = $http->lastRequest();
         $this->assertStringContainsString('/api/v2/orders', $last['url']);
         $body = $http->lastJsonBody();
-        $this->assertSame('BOX-1', $body['items'][0]['sub_order_id']);
+        $this->assertSame('BOX-1', $body['items'][0]['item_id']);
     }
 
     public function testStatusPoolPollsTheV2PathAndPages()
@@ -50,7 +50,7 @@ final class V2Test extends TestCase
         $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
         $http->queueJson(200, array(
             'data' => array(
-                array('cursor' => 11, 'tracking_number' => 'STM1', 'order_id' => 'PO-1', 'sub_order_id' => null, 'status' => 'received_at_hub'),
+                array('cursor' => 11, 'tracking_number' => 'STM1', 'order_id' => 'PO-1', 'item_id' => null, 'status' => 'received_at_hub'),
             ),
             'next_cursor' => 11,
             'has_more' => true,
@@ -76,18 +76,18 @@ final class V2Test extends TestCase
 
         $client = $this->client($http);
 
-        $client->v2()->orders()->updateSubOrder('PO-1', 'BOX-1', array('weight_grams' => 900));
+        $client->v2()->orders()->updateItem('PO-1', 'BOX-1', array('weight_grams' => 900));
         $requests = array($http->lastRequest());
 
-        $client->v2()->orders()->cancelSubOrder('PO-1', 'BOX-1', 'damaged');
+        $client->v2()->orders()->cancelItem('PO-1', 'BOX-1', 'damaged');
         $requests[] = $http->lastRequest();
 
         $client->v2()->orders()->cancel('PO-1');
         $requests[] = $http->lastRequest();
 
-        $this->assertStringContainsString('/api/v2/orders/PO-1/sub-orders/BOX-1', $requests[0]['url']);
+        $this->assertStringContainsString('/api/v2/orders/PO-1/items/BOX-1', $requests[0]['url']);
         $this->assertSame('PATCH', $requests[0]['method']);
-        $this->assertStringContainsString('/api/v2/orders/PO-1/sub-orders/BOX-1/cancel', $requests[1]['url']);
+        $this->assertStringContainsString('/api/v2/orders/PO-1/items/BOX-1/cancel', $requests[1]['url']);
         $this->assertStringContainsString('/api/v2/orders/PO-1/cancel', $requests[2]['url']);
     }
 

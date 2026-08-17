@@ -53,7 +53,7 @@ final class StatusPoolTest extends TestCase
 
         $changes = $this->client($http)->statusPool()->changes(0)->changes();
 
-        // A parcel-scoped ("sub-order") change carries the partner's per-parcel
+        // A parcel-scoped ("item") change carries the partner's per-parcel
         // reference alongside the order reference, the ISO-2 country the change
         // occurred in, and the plain occurred_at + its timezone — all passed
         // through verbatim.
