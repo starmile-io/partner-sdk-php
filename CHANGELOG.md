@@ -4,6 +4,16 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.19.0] - 2026-08-16
+
+### Changed
+
+- **v2 create body: the box array is `items[]`** (was `sub_orders[]` in the
+  unreleased 6.18.0 shape) on both the request and the response — matching the
+  vocabulary v1 partners already know from the v1 response. The per-box
+  reference stays `sub_order_id`. v2 has no consumers yet, so this is a
+  pre-release correction, not a breaking change.
+
 ## [6.18.0] - 2026-08-16
 
 ### Added

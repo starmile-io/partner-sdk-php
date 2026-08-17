@@ -28,7 +28,7 @@ use Starmile\PartnerSdk\Retry\RetryPolicy;
 final class Client
 {
     /** The SDK version (sent in the User-Agent). */
-    const VERSION = '6.18.0';
+    const VERSION = '6.19.0';
 
     /** @var Configuration */
     private $configuration;
@@ -196,7 +196,7 @@ final class Client
     }
 
     /**
-     * The /api/v2 surface — the sub_orders vocabulary. v1 and v2 are separate
+     * The /api/v2 surface — the items/sub_order vocabulary. v1 and v2 are separate
      * contracts (different bodies, a different status-pool cursor space); pick
      * one per integration. See {@see V2}.
      *

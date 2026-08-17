@@ -76,7 +76,7 @@ scopes on your credential.
 | `$starmile->events()`   | `events:transport`, `events:pudo`, `events:customs`, `leg:handoff`| `POST /api/v1/partner/events` |
 
 The same four groups exist on **API v2** under `$starmile->v2()` — see
-[API v2 — sub_orders](#api-v2--sub_orders).
+[API v2 — items / sub_orders](#api-v2--items--sub_orders).
 
 ### Catalogue
 
@@ -291,7 +291,7 @@ EventType::scopeFor(EventType::CUSTOMS_HELD);         // 'events:customs'
 EventType::dataFieldsFor(EventType::SHIPMENT_DELIVERED); // ['note','recipient_name','signed_by','proof_of_delivery']
 ```
 
-## API v2 — sub_orders
+## API v2 — items / sub_orders
 
 `$starmile->v2()` reaches the `/api/v2` surface. The scopes and polling model
 are the same as v1; the vocabulary differs:
@@ -311,7 +311,7 @@ $created = $starmile->v2()->orders()->create(array(
     'service_id'     => 12,
     'order_id'       => 'PO-1001',
     'customer_email' => 'buyer@example.com',
-    'sub_orders'     => array(
+    'items'          => array(
         array(
             'sub_order_id'      => 'BOX-1',
             'merchant_tracking' => 'MT-0001',
@@ -320,7 +320,7 @@ $created = $starmile->v2()->orders()->create(array(
     ),
 ));
 
-// $created['tracking_number'] — our reference; $created['sub_orders'][0]['sub_order_id'] — yours.
+// $created['tracking_number'] — our reference; $created['items'][0]['sub_order_id'] — yours.
 
 $starmile->v2()->orders()->updateSubOrder('PO-1001', 'BOX-1', array('weight_grams' => 900));
 

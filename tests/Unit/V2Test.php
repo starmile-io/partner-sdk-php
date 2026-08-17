@@ -9,7 +9,7 @@ use Starmile\PartnerSdk\Tests\Support\FakeHttpClient;
 
 final class V2Test extends TestCase
 {
-    public function testCreateSendsTheSubOrdersPayloadToTheV2PathAndUnwrapsData()
+    public function testCreateSendsTheItemsPayloadToTheV2PathAndUnwrapsData()
     {
         $http = new FakeHttpClient();
         $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
@@ -18,14 +18,14 @@ final class V2Test extends TestCase
             'order_id' => 'PO-1001',
             'duplicate' => false,
             'region_status' => 'not_applicable',
-            'sub_orders' => array(array('sub_order_id' => 'BOX-1', 'merchant_tracking' => 'MT-1')),
+            'items' => array(array('sub_order_id' => 'BOX-1', 'merchant_tracking' => 'MT-1')),
         )));
 
         $created = $this->client($http)->v2()->orders()->create(array(
             'service_id' => 7,
             'order_id' => 'PO-1001',
             'customer_email' => 'buyer@example.com',
-            'sub_orders' => array(array(
+            'items' => array(array(
                 'sub_order_id' => 'BOX-1',
                 'merchant_tracking' => 'MT-1',
                 'products' => array(array('name' => 'Shoes')),
@@ -34,14 +34,14 @@ final class V2Test extends TestCase
 
         $this->assertSame('STM000123', $created['tracking_number']);
         $this->assertSame('PO-1001', $created['order_id']);
-        $this->assertSame('BOX-1', $created['sub_orders'][0]['sub_order_id']);
+        $this->assertSame('BOX-1', $created['items'][0]['sub_order_id']);
         // No per-box Starmile tracking exists on v2 — the key is simply absent.
-        $this->assertArrayNotHasKey('parcel_id', $created['sub_orders'][0]);
+        $this->assertArrayNotHasKey('parcel_id', $created['items'][0]);
 
         $last = $http->lastRequest();
         $this->assertStringContainsString('/api/v2/orders', $last['url']);
         $body = $http->lastJsonBody();
-        $this->assertSame('BOX-1', $body['sub_orders'][0]['sub_order_id']);
+        $this->assertSame('BOX-1', $body['items'][0]['sub_order_id']);
     }
 
     public function testStatusPoolPollsTheV2PathAndPages()

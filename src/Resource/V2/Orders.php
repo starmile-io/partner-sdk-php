@@ -5,10 +5,10 @@ namespace Starmile\PartnerSdk\Resource\V2;
 use Starmile\PartnerSdk\Resource\AbstractResource;
 
 /**
- * Order intake and management on /api/v2 — the sub_orders vocabulary
+ * Order intake and management on /api/v2 — the items/sub_order vocabulary
  * (scopes: orders:create / orders:update / orders:cancel / labels:read).
  *
- * v2 renames the box array: v1's `parcels[]` is `sub_orders[]`, and your
+ * v2 renames the box array: v1's `parcels[]` is `items[]`, and your
  * per-box reference `item_id` is `sub_order_id`. A sub-order carries NO
  * Starmile tracking number of its own — you address it by your own
  * `sub_order_id` (or its `merchant_tracking`), and the create response echoes
@@ -20,12 +20,12 @@ final class Orders extends AbstractResource
 {
     /**
      * Create an order. Pass the raw v2 payload (`service_id`, `order_id`,
-     * `sub_orders[]`, ...). Idempotent on your `order_id`: re-sending one you
+     * `items[]`, ...). Idempotent on your `order_id`: re-sending one you
      * already used replays the original order with HTTP 200 and
      * `duplicate` = true instead of failing.
      *
      * @param array<string, mixed> $order
-     * @return array{tracking_number: string, order_id: string, duplicate: bool, region_status: string, sub_orders: list<array{sub_order_id: ?string, merchant_tracking: ?string}>}
+     * @return array{tracking_number: string, order_id: string, duplicate: bool, region_status: string, items: list<array{sub_order_id: ?string, merchant_tracking: ?string}>}
      */
     public function create(array $order)
     {

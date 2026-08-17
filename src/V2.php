@@ -8,7 +8,7 @@ use Starmile\PartnerSdk\Resource\V2\Orders;
 use Starmile\PartnerSdk\Resource\V2\StatusPool;
 
 /**
- * The /api/v2 surface — the sub_orders vocabulary.
+ * The /api/v2 surface — the items/sub_order vocabulary.
  *
  * <code>
  * $starmile = Starmile\PartnerSdk\Client::create('client_id', 'client_secret');
@@ -17,7 +17,7 @@ use Starmile\PartnerSdk\Resource\V2\StatusPool;
  *     'service_id' => 12,
  *     'order_id'   => 'PO-1001',
  *     'customer_email' => 'buyer@example.com',
- *     'sub_orders' => array(
+ *     'items' => array(
  *         array('sub_order_id' => 'BOX-1', 'merchant_tracking' => 'MT-1',
  *               'products' => array(array('name' => 'Widget'))),
  *     ),
