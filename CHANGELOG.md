@@ -4,6 +4,34 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.19.0] - 2026-08-17
+
+### Changed
+
+- **v2 speaks item, everywhere** (pre-release shape correction — v2 has no
+  consumers yet): the create body's box array is `items[]` with `item_id` on
+  both request and response (the same per-box key v1 uses), the management
+  paths are `/api/v2/orders/{order}/items/{item}` (`updateItem()` /
+  `cancelItem()`), and the status-pool row carries `order_id` + `item_id`
+  (v1: `external_parent_id` + `external_id`), and the pool FILTER parameter is
+  `order_id` too (`changes($since, $limit, $trackingNumber, $orderId)`).
+
+## [6.18.0] - 2026-08-16
+
+### Added
+- **`/api/v2` support — the sub_orders vocabulary** via `$client->v2()`:
+  `v2()->orders()` (create / updateSubOrder / cancelSubOrder / cancel / labels),
+  `v2()->statusPool()` (changes / each), `v2()->catalogue()` and `v2()->events()`.
+  On v2 your per-box reference is `sub_order_id` (v1: `item_id`), the box array
+  is `sub_orders[]` (v1: `parcels[]`), the create response returns our reference
+  as `tracking_number` and echoes your `order_id`, and sub-orders carry **no
+  Starmile tracking number of their own** — you address them by your own
+  references only.
+- v1 is unchanged and fully supported. The two versions are separate contracts:
+  a v1 status-pool cursor is meaningless on v2 (a new cursor space) — when
+  migrating, drain v2 from `since = 0` and dedupe, rather than carrying a v1
+  cursor over.
+
 ## [6.17.0] - 2026-08-10
 
 ### Changed
