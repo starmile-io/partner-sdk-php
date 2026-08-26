@@ -71,7 +71,7 @@ scopes on your credential.
 | Resource                | Scope(s)                                                          | Endpoints |
 | ----------------------- | ---------------------------------------------------------------- | --------- |
 | `$starmile->catalogue()`| `catalogue:read`                                                 | `GET /api/v1/services`, `GET /api/v1/rates` |
-| `$starmile->orders()`   | `orders:create`, `orders:update`, `orders:cancel`                | `POST /api/v1/orders`, `PATCH /api/v1/orders/{order}/parcels/{parcel}`, `POST /api/v1/orders/{order}/parcels/{parcel}/cancel`, `POST /api/v1/orders/{order}/cancel` |
+| `$starmile->orders()`   | `orders:create`, `orders:update`, `orders:cancel`                | `POST /api/v1/orders`, `POST /api/v1/orders/{order}/parcels`, `PATCH /api/v1/orders/{order}/parcels/{parcel}`, `POST /api/v1/orders/{order}/parcels/{parcel}/cancel`, `POST /api/v1/orders/{order}/cancel` |
 | `$starmile->statusPool()`| `status:read`                                                   | `GET /api/v1/partner/changes` |
 | `$starmile->events()`   | `events:transport`, `events:pudo`, `events:customs`, `leg:handoff`| `POST /api/v1/partner/events` |
 
@@ -143,6 +143,14 @@ Orders and parcels are addressed by **your own references** afterwards — the
 `partner_tracking` in responses):
 
 ```php
+// Add a new parcel to an existing order (one parcel, same shape as a create parcels[] entry).
+// Returns ['order_id' => ..., 'item' => ['item_id' => ..., 'parcel_id' => ...]].
+$added = $starmile->orders()->addParcel('ORD-1001', [
+    'item_id' => 'ITEM-3',
+    'merchant_tracking' => 'BARCODE-3',
+    'products' => [['name' => 'Ceramic mug', 'declared_value' => 12.50, 'currency' => 'USD']],
+]);
+
 // Update a shipment that has not been received yet (partial; `products` replaces the list).
 $starmile->orders()->updateParcel('ORD-1001', 'ITEM-1', [
     'weight_grams' => 1500,
@@ -321,6 +329,12 @@ $created = $starmile->v2()->orders()->create(array(
 ));
 
 // $created['tracking_number'] — our reference; $created['items'][0]['item_id'] — yours.
+
+// Add an item to a MULTI-item order (a single-item order is 409 — create a new order instead).
+$starmile->v2()->orders()->addItem('PO-1001', array(
+    'item_id' => 'BOX-3',
+    'products' => array(array('name' => 'Ceramic mug')),
+));
 
 $starmile->v2()->orders()->updateItem('PO-1001', 'BOX-1', array('weight_grams' => 900));
 

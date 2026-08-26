@@ -4,6 +4,28 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.20.0] - 2026-08-26
+
+### Added
+
+- **`orders()->addParcel($orderId, $parcel)`** — add a new parcel to an existing
+  order (`POST /api/v1/orders/{order_id}/parcels`, scope `orders:update`). The
+  body is one parcel in the same shape as a single entry of `create()`'s
+  `parcels[]` (`item_id`, `merchant_tracking`, dims, `products` required); the new
+  parcel gets its own Starmile tracking number and starts at
+  `waiting_for_arrival` on the order's flow. Returns
+  `array('order_id' => ..., 'item' => array('item_id' => ..., 'parcel_id' => ...))`.
+  A reused `item_id` or a `merchant_tracking` held by a real parcel is a `422`; a
+  `merchant_tracking` held by an unidentified package already at the hub is
+  matched to this parcel (as on create); a cancelled order is a `409`.
+- **`v2()->orders()->addItem($orderId, $item)`** — the v2 twin
+  (`POST /api/v2/orders/{order_id}/items`, scope `orders:update`). The item
+  carries no Starmile tracking of its own; returns
+  `array('tracking_number' => ..., 'order_id' => ..., 'item' => array('item_id' => ..., 'merchant_tracking' => ...))`.
+  One difference from v1: a SINGLE-item (folded) order carries its box on the
+  order itself and has no items to add to, so adding one is refused `409` —
+  create a new order for the extra package.
+
 ## [6.19.0] - 2026-08-17
 
 ### Changed

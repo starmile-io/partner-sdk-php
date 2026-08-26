@@ -149,6 +149,34 @@ final class OrdersTest extends TestCase
         $this->assertFalse($created['duplicate']);
     }
 
+    public function testAddParcelPostsToTheOrderParcelsCollection()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(201, array('data' => array(
+            'order_id' => 'STM-0YB4KQ2N',
+            'item' => array('item_id' => 'PKG-3', 'parcel_id' => 'STM-7QD1XW8A'),
+        )));
+
+        $result = $this->client($http)->orders()->addParcel('ORD/1', array(
+            'item_id' => 'PKG-3',
+            'merchant_tracking' => 'CN773300012345',
+            'products' => array(array('name' => 'Ceramic mug')),
+        ));
+
+        $call = $http->lastRequest();
+        $this->assertSame('POST', $call['method']);
+        $this->assertSame('https://api.starmile.io/api/v1/orders/ORD%2F1/parcels', $call['url']);
+        $this->assertSame(array(
+            'item_id' => 'PKG-3',
+            'merchant_tracking' => 'CN773300012345',
+            'products' => array(array('name' => 'Ceramic mug')),
+        ), $http->lastJsonBody());
+        // The unwrapped `data`: the new parcel's Starmile tracking is parcel_id.
+        $this->assertSame('PKG-3', $result['item']['item_id']);
+        $this->assertSame('STM-7QD1XW8A', $result['item']['parcel_id']);
+    }
+
     public function testUpdateParcelEncodesReferencesInThePath()
     {
         $http = new FakeHttpClient();
