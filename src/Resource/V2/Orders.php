@@ -65,6 +65,35 @@ final class Orders extends AbstractResource
     }
 
     /**
+     * Add a NEW item to an existing MULTI-item order (addressed by your own
+     * `order_id`). One item per call, in the same shape as one entry of
+     * {@see self::create()}'s `items[]`. The item carries no Starmile tracking of
+     * its own, so the result is
+     * `array('tracking_number' => ..., 'order_id' => ..., 'item' => array(
+     * 'item_id' => ..., 'merchant_tracking' => ...))`. `products` is required.
+     *
+     * A SINGLE-item order carries its one box on the order itself and has no
+     * separate items to add to — adding one is refused (409). Create a NEW order
+     * for the additional package instead. A reused `item_id`, or a
+     * `merchant_tracking` held by a real item, is a 422; a `merchant_tracking`
+     * held by an unidentified package already at the hub is matched to this item.
+     * Scope: `orders:update`.
+     *
+     * @param string               $orderId Your order reference (order_id).
+     * @param array<string, mixed> $item    item_id, merchant_tracking, package_type,
+     *                                      weight_grams, length_mm, width_mm,
+     *                                      height_mm (all optional) and products[]
+     *                                      (required).
+     * @return array<string, mixed>
+     */
+    public function addItem($orderId, array $item)
+    {
+        $path = '/api/v2/orders/' . rawurlencode($orderId) . '/items';
+
+        return $this->unwrap($this->connection->post($path, $item));
+    }
+
+    /**
      * Update a item while its order is still at the flow's first step
      * (partial; `products` replaces the full list). Addressed entirely by YOUR
      * references — your `order_id` and your `item_id`.

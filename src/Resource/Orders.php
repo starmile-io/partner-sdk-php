@@ -121,6 +121,35 @@ final class Orders extends AbstractResource
     }
 
     /**
+     * Add a NEW parcel to an existing order. One parcel per call, in the same
+     * shape as one entry of {@see self::create()}'s `parcels[]`. The new parcel
+     * gets its own Starmile tracking number and starts at `waiting_for_arrival`
+     * on the order's flow, independent of the other parcels. `products` is
+     * required.
+     *
+     * Returns `array('order_id' => ..., 'item' => array('item_id' => ...,
+     * 'parcel_id' => ...))` — `parcel_id` is the new parcel's Starmile tracking
+     * number. A reused `item_id`, or a `merchant_tracking` already held by a real
+     * parcel, is a 422; a `merchant_tracking` held by an unidentified package
+     * already at the hub is MATCHED to this parcel (same physical box) rather than
+     * rejected, exactly as on create. A cancelled order is a 409.
+     * Scope: `orders:update`.
+     *
+     * @param string               $orderId  The partner's order reference (order_id).
+     * @param array<string, mixed> $parcel   item_id, merchant_tracking, package_type,
+     *                                        weight_grams, length_mm, width_mm,
+     *                                        height_mm (all optional) and products[]
+     *                                        (required).
+     * @return array<string, mixed>
+     */
+    public function addParcel($orderId, array $parcel)
+    {
+        $path = '/api/v1/orders/' . rawurlencode($orderId) . '/parcels';
+
+        return $this->unwrap($this->connection->post($path, $parcel));
+    }
+
+    /**
      * Update a parcel while its order is still at the flow's FIRST step (partial).
      * Sending `products` REPLACES the parcel's full product list. 409 once the order
      * has moved past its first step (e.g. the parcel has been received).

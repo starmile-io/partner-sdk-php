@@ -66,6 +66,30 @@ final class V2Test extends TestCase
         $this->assertStringContainsString('/api/v2/partner/changes', $last['url']);
     }
 
+    public function testAddItemPostsToTheV2ItemsCollection()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(201, array('data' => array(
+            'tracking_number' => 'STM-0YB4KQ2N',
+            'order_id' => 'PO-1',
+            'item' => array('item_id' => 'BOX-3', 'merchant_tracking' => 'CN773300012345'),
+        )));
+
+        $result = $this->client($http)->v2()->orders()->addItem('PO-1', array(
+            'item_id' => 'BOX-3',
+            'merchant_tracking' => 'CN773300012345',
+            'products' => array(array('name' => 'Ceramic mug')),
+        ));
+
+        $call = $http->lastRequest();
+        $this->assertSame('POST', $call['method']);
+        $this->assertStringContainsString('/api/v2/orders/PO-1/items', $call['url']);
+        $this->assertStringNotContainsString('/items/', $call['url']); // the collection, not one item
+        $this->assertSame('STM-0YB4KQ2N', $result['tracking_number']);
+        $this->assertSame('BOX-3', $result['item']['item_id']);
+    }
+
     public function testSubOrderManagementUsesTheV2SubOrderPaths()
     {
         $http = new FakeHttpClient();
