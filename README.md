@@ -157,6 +157,20 @@ $starmile->orders()->updateParcel('ORD-1001', 'ITEM-1', [
     'merchant_tracking' => 'BARCODE-1B',
 ]);
 
+// Split one OR MORE parcels off onto a NEW, cloned order (a fresh order with the
+// same service/flow/customer/destination). Name the parcels with $itemIds (an
+// array of your own item references, one or more, distinct) — all move onto the
+// one new order, and the source keeps the rest. You name the new order with your
+// own reference ($newOrderId); it must be unused and different from the source.
+// Returns ['order_id' => <new order Starmile tracking>, 'new_order_id' => ...,
+//          'source_order_id' => ..., 'items' => [['item_id' => ..., 'parcel_id' => ...], ...]].
+// Ordinary orders: pre-custody only (409 once received). A CONSOLIDATION order
+// can be split any time before its boxes are packed (a received/shelved parcel
+// can still be pulled out); only a packed consolidation is 409. A single-package
+// or cancelled order, or naming every parcel, is 409; an item_id that names no
+// active parcel is 404; a used/duplicate $newOrderId is 422.
+$split = $starmile->orders()->split('ORD-1001', ['ITEM-2', 'ITEM-3'], 'ORD-1001-B', 'ships separately');
+
 // Cancel a single parcel while it is still pre-custody (409 once received).
 // When it was the order's last active parcel, the order is cancelled too.
 $starmile->orders()->cancelParcel('ORD-1001', 'ITEM-1', 'item out of stock');
@@ -337,6 +351,18 @@ $starmile->v2()->orders()->addItem('PO-1001', array(
 ));
 
 $starmile->v2()->orders()->updateItem('PO-1001', 'BOX-1', array('weight_grams' => 900));
+
+// Split one OR MORE items off onto a NEW cloned order (the v2 twin of
+// orders()->split()). Name the items with $itemIds (an array). Result follows the
+// v2 wire: ['tracking_number' => <new order ref>, 'order_id' => 'PO-1001-B'
+// (your new ref), 'source_order_id' => ..., 'items' => [['item_id' => ...,
+// 'merchant_tracking' => ...], ...]]. Moving a SINGLE item yields a single-item
+// order stored the v2 way (item on the order, no separate item to address, so you
+// cannot addItem() to it); moving TWO OR MORE yields a multi-item order that keeps
+// its items. A CONSOLIDATION order is splittable while unpacked; a folded
+// single-item source order, an already-packed consolidation, or naming every item
+// has nothing left to split (409); an item_id that names no active item is 404.
+$starmile->v2()->orders()->split('PO-1001', ['BOX-2', 'BOX-3'], 'PO-1001-B', 'ships separately');
 
 foreach ($starmile->v2()->statusPool()->each(0) as $change) {
     // $change['order_id'] is YOUR reference on v2.

@@ -4,6 +4,92 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] - 2026-08-28
+
+### Changed (BREAKING)
+
+- **`split()` now peels off one or more parcels, named in the body, onto one new
+  order** (v1 + v2). The endpoint moved from
+  `POST /api/v1/orders/{order}/parcels/{item}/split` (and the v2
+  `…/items/{item}/split`) to `POST /api/v1/orders/{order}/split` (and
+  `POST /api/v2/orders/{order}/split`): the parcel is no longer in the URL. The
+  body carries `item_ids` — an array of your own item references (one or more,
+  distinct) — all moved onto the ONE order named by `new_order_id`; the source
+  keeps the parcels you did not name.
+- **`orders()->split()` / `v2()->orders()->split()` signatures changed:** the
+  second argument is now `array $itemIds` (was a single `string $itemId`) —
+  `split($orderId, array $itemIds, $newOrderId, $reason = null)`. Pass
+  `['PKG-2']` to move a single parcel.
+- **The response returns `items` (an array) instead of `item`.** Each entry is
+  `{ item_id, parcel_id }` on v1 and `{ item_id, merchant_tracking }` on v2, one
+  per moved parcel.
+- **v2 folds only a single-item split.** Moving one item still yields a folded
+  single-item order (item on the order row, no separately addressable item, so you
+  cannot `addItem()` to it); moving two or more yields a genuine multi-item order
+  that keeps its items.
+- **New refusals:** naming every active parcel (nothing would be left on the
+  source) is a `409`, and an `item_id` that names no active parcel on the order is
+  a `404`. The pre-custody / consolidation split windows and the `new_order_id`
+  uniqueness rules are unchanged.
+
+## [6.23.0] - 2026-08-28
+
+### Changed
+
+- **`v2()->orders()->split()` now returns a FOLDED new order.** The split-off
+  order is a single-item order stored the v2 way — the item lives on the order
+  itself, with no separately addressable item — matching how v2 creates any
+  single-item order. Consequence: as with any v2 single-item order, you cannot
+  `addItem()` to a split result (create a new order for an extra package). The
+  response shape and the `split()` signature are unchanged. (v1
+  `orders()->split()` is unchanged — it keeps the child parcel, since its contract
+  exposes `items[].parcel_id`.)
+
+### Fixed
+
+- **Split now moves the box's delivery pin onto the new order** (v1 + v2). A
+  home-delivery order gets an early delivery pin at intake; previously a split left
+  that pin on the source order, orphaning it. The pin now follows the box to the
+  new order.
+
+## [6.22.0] - 2026-08-28
+
+### Changed
+
+- **`orders()->split()` / `v2()->orders()->split()` now accept an UNPACKED
+  consolidation order.** Previously any consolidation order was refused `409`;
+  now a consolidation order can be split any time **before its boxes are packed**
+  — a parcel already received at the hub, or shelved for the consolidation, can
+  still be pulled out onto its own order (it is taken off the consolidation and
+  its new order continues on its own). Only an **already-packed** consolidation is
+  refused `409`. Ordinary (non-consolidation) orders are unchanged — still
+  splittable pre-custody only. Purely a relaxation; no request/response shape or
+  signature change.
+
+## [6.21.0] - 2026-08-27
+
+### Added
+
+- **`orders()->split($orderId, $itemId, $newOrderId, $reason = null)`** — split
+  one parcel off an existing order onto a NEW, cloned order
+  (`POST /api/v1/orders/{order_id}/parcels/{item_id}/split`, scope
+  `orders:update`). The parcel is detached and moved onto a fresh clone of the
+  order (same service, flow, customer and destination), keeping its own Starmile
+  tracking number and its place at the flow's first step. You name the new order
+  with `$newOrderId` — your own reference — so you can track and manage it like
+  any other order. Returns
+  `array('order_id' => ..., 'new_order_id' => ..., 'source_order_id' => ..., 'item' => array('item_id' => ..., 'parcel_id' => ...))`
+  where `order_id` is the NEW order's Starmile tracking number. Only while the
+  parcel is pre-custody (its flow's first step) — else `409`; a single-package,
+  cancelled, or consolidation order is `409`; a `$newOrderId` already used, or
+  equal to `$orderId`, is `422`.
+- **`v2()->orders()->split($orderId, $itemId, $newOrderId, $reason = null)`** —
+  the v2 twin (`POST /api/v2/orders/{order_id}/items/{item_id}/split`, scope
+  `orders:update`). The result follows the v2 wire — the new order's Starmile
+  reference is `tracking_number` and `order_id` echoes your `$newOrderId`:
+  `array('tracking_number' => ..., 'order_id' => ..., 'source_order_id' => ..., 'item' => array('item_id' => ..., 'merchant_tracking' => ...))`.
+  A folded SINGLE-item order has no item to split off (`409`).
+
 ## [6.20.0] - 2026-08-26
 
 ### Added

@@ -217,6 +217,46 @@ final class OrdersTest extends TestCase
         $this->assertSame(array(), $http->lastJsonBody());
     }
 
+    public function testSplitPostsToTheOrderSplitPathWithItemIds()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(201, array('data' => array(
+            'order_id' => 'STM-7QD1XW8A',
+            'new_order_id' => 'ORD-1-B',
+            'source_order_id' => 'ORD/1',
+            'items' => array(
+                array('item_id' => 'PKG 2', 'parcel_id' => 'STM-3MZ9KL0P'),
+                array('item_id' => 'PKG 3', 'parcel_id' => 'STM-5FH2NQ7R'),
+            ),
+        )));
+
+        $result = $this->client($http)->orders()->split('ORD/1', array('PKG 2', 'PKG 3'), 'ORD-1-B', 'ships separately');
+
+        $call = $http->lastRequest();
+        $this->assertSame('POST', $call['method']);
+        $this->assertSame('https://api.starmile.io/api/v1/orders/ORD%2F1/split', $call['url']);
+        $this->assertSame(array('item_ids' => array('PKG 2', 'PKG 3'), 'new_order_id' => 'ORD-1-B', 'reason' => 'ships separately'), $http->lastJsonBody());
+        // The unwrapped `data`: order_id is the NEW order's Starmile tracking.
+        $this->assertSame('STM-7QD1XW8A', $result['order_id']);
+        $this->assertSame('ORD-1-B', $result['new_order_id']);
+        $this->assertSame('STM-3MZ9KL0P', $result['items'][0]['parcel_id']);
+        $this->assertSame('STM-5FH2NQ7R', $result['items'][1]['parcel_id']);
+    }
+
+    public function testSplitReindexesItemIdsAndOmitsReasonWhenNoneGiven()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(201, array('data' => array('order_id' => 'STM-9', 'new_order_id' => 'ORD-2')));
+
+        // A caller may pass a non-sequential array (e.g. filtered) — it goes over
+        // the wire as a JSON array, never an object.
+        $this->client($http)->orders()->split('ORD-1', array(2 => 'PKG-1'), 'ORD-2');
+
+        $this->assertSame(array('item_ids' => array('PKG-1'), 'new_order_id' => 'ORD-2'), $http->lastJsonBody());
+    }
+
     public function testCancelRaisesConflictWhenInCustody()
     {
         $http = new FakeHttpClient();
