@@ -10,6 +10,7 @@ use Starmile\PartnerSdk\Builder\OrderBuilder;
  *   POST  /api/v1/orders                                  (scope: orders:create)
  *   GET   /api/v1/orders/label                             (scope: labels:read)
  *   PATCH /api/v1/orders/{order}/parcels/{parcel}     (scope: orders:update)
+ *   POST  /api/v1/orders/{order}/parcels/{parcel}/split   (scope: orders:update)
  *   POST  /api/v1/orders/{order}/parcels/{parcel}/cancel  (scope: orders:cancel)
  *   POST  /api/v1/orders/{order}/cancel                   (scope: orders:cancel)
  *
@@ -174,6 +175,40 @@ final class Orders extends AbstractResource
         $path = '/api/v1/orders/' . rawurlencode($orderId) . '/parcels/' . rawurlencode($itemId);
 
         return $this->unwrap($this->connection->patch($path, $changes));
+    }
+
+    /**
+     * Split one parcel off an existing order onto a NEW, cloned order. The parcel
+     * is detached and moved onto a fresh clone of the order (same service, flow,
+     * customer and destination); it keeps its own Starmile tracking number and its
+     * place at the flow's FIRST step. You name the new order with `$newOrderId` —
+     * your OWN reference for it — so you can track and manage it like any other
+     * order; it must be unused across your orders and different from `$orderId`.
+     *
+     * Returns `array('order_id' => ..., 'new_order_id' => ..., 'source_order_id'
+     * => ..., 'item' => array('item_id' => ..., 'parcel_id' => ...))` — `order_id`
+     * is the NEW order's Starmile tracking number, `parcel_id` the moved parcel's.
+     * Only while the parcel is pre-custody (its flow's first step) — else 409; an
+     * order with a single package, or a cancelled/consolidation order, is a 409; a
+     * `$newOrderId` already used, or equal to `$orderId`, is a 422.
+     * Scope: `orders:update`.
+     *
+     * @param string      $orderId    The partner's order reference (order_id) to split FROM.
+     * @param string      $itemId     The partner's parcel reference (item_id) to peel off.
+     * @param string      $newOrderId Your own reference for the new order the parcel is moved onto.
+     * @param string|null $reason     Optional free-text reason, kept on the new order's history.
+     * @return array<string, mixed>
+     */
+    public function split($orderId, $itemId, $newOrderId, $reason = null)
+    {
+        $path = '/api/v1/orders/' . rawurlencode($orderId) . '/parcels/' . rawurlencode($itemId) . '/split';
+        $body = array('new_order_id' => $newOrderId);
+
+        if ($reason !== null) {
+            $body['reason'] = $reason;
+        }
+
+        return $this->unwrap($this->connection->post($path, $body));
     }
 
     /**

@@ -113,6 +113,41 @@ final class Orders extends AbstractResource
     }
 
     /**
+     * Split one item off an existing multi-item order onto a NEW, cloned order —
+     * the v2 twin of v1's {@see \Starmile\PartnerSdk\Resource\Orders::split()}. The
+     * item is moved onto a fresh clone of the order; you name the new order with
+     * `$newOrderId` (your own reference), which must be unused and different from
+     * `$orderId`.
+     *
+     * The result follows the v2 wire:
+     * `array('tracking_number' => ..., 'order_id' => ..., 'source_order_id' => ...,
+     * 'item' => array('item_id' => ..., 'merchant_tracking' => ...))` — the NEW
+     * order's Starmile reference is `tracking_number` and `order_id` echoes your
+     * `$newOrderId`.
+     *
+     * A folded SINGLE-item order has no item to split off (409); pre-custody only
+     * (else 409); a `$newOrderId` already used, or equal to `$orderId`, is a 422.
+     * Scope: `orders:update`.
+     *
+     * @param string      $orderId    Your order reference to split FROM.
+     * @param string      $itemId     Your item reference to peel off.
+     * @param string      $newOrderId Your own reference for the new order.
+     * @param string|null $reason     Optional free-text reason.
+     * @return array<string, mixed>
+     */
+    public function split($orderId, $itemId, $newOrderId, $reason = null)
+    {
+        $path = '/api/v2/orders/' . rawurlencode($orderId) . '/items/' . rawurlencode($itemId) . '/split';
+        $body = array('new_order_id' => $newOrderId);
+
+        if ($reason !== null) {
+            $body['reason'] = $reason;
+        }
+
+        return $this->unwrap($this->connection->post($path, $body));
+    }
+
+    /**
      * Cancel a single item while it is still at the flow's first step.
      * When it is the order's last active item, the order cancels with it.
      *
