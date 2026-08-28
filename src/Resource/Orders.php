@@ -180,18 +180,21 @@ final class Orders extends AbstractResource
     /**
      * Split one parcel off an existing order onto a NEW, cloned order. The parcel
      * is detached and moved onto a fresh clone of the order (same service, flow,
-     * customer and destination); it keeps its own Starmile tracking number and its
-     * place at the flow's FIRST step. You name the new order with `$newOrderId` —
-     * your OWN reference for it — so you can track and manage it like any other
-     * order; it must be unused across your orders and different from `$orderId`.
+     * customer and destination); it keeps its own Starmile tracking number and
+     * continues its journey from wherever it already is. You name the new order
+     * with `$newOrderId` — your OWN reference for it — so you can track and manage
+     * it like any other order; it must be unused across your orders and different
+     * from `$orderId`.
      *
      * Returns `array('order_id' => ..., 'new_order_id' => ..., 'source_order_id'
      * => ..., 'item' => array('item_id' => ..., 'parcel_id' => ...))` — `order_id`
      * is the NEW order's Starmile tracking number, `parcel_id` the moved parcel's.
-     * Only while the parcel is pre-custody (its flow's first step) — else 409; an
-     * order with a single package, or a cancelled/consolidation order, is a 409; a
-     * `$newOrderId` already used, or equal to `$orderId`, is a 422.
-     * Scope: `orders:update`.
+     * An ordinary order is splittable only pre-custody (the parcel at its flow's
+     * first step); a CONSOLIDATION order can be split any time before its boxes are
+     * packed — a parcel already received or shelved for the consolidation can still
+     * be pulled out. An order with a single package, a cancelled order, or an
+     * ALREADY-PACKED consolidation is a 409; a `$newOrderId` already used, or equal
+     * to `$orderId`, is a 422. Scope: `orders:update`.
      *
      * @param string      $orderId    The partner's order reference (order_id) to split FROM.
      * @param string      $itemId     The partner's parcel reference (item_id) to peel off.
