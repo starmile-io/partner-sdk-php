@@ -123,7 +123,10 @@ final class Orders extends AbstractResource
      * `array('tracking_number' => ..., 'order_id' => ..., 'source_order_id' => ...,
      * 'item' => array('item_id' => ..., 'merchant_tracking' => ...))` — the NEW
      * order's Starmile reference is `tracking_number` and `order_id` echoes your
-     * `$newOrderId`.
+     * `$newOrderId`. The new order is a SINGLE-item order, stored the v2 way (the
+     * item lives on the order itself, no separate item to address), so — as with
+     * any v2 single-item order — you cannot {@see self::addItem()} to it; create a
+     * new order for an extra package.
      *
      * An ordinary order is splittable only pre-custody; a CONSOLIDATION order can
      * be split any time before its boxes are packed (an item already received or

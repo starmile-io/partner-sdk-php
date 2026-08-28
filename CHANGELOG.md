@@ -4,6 +4,26 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.23.0] - 2026-08-28
+
+### Changed
+
+- **`v2()->orders()->split()` now returns a FOLDED new order.** The split-off
+  order is a single-item order stored the v2 way — the item lives on the order
+  itself, with no separately addressable item — matching how v2 creates any
+  single-item order. Consequence: as with any v2 single-item order, you cannot
+  `addItem()` to a split result (create a new order for an extra package). The
+  response shape and the `split()` signature are unchanged. (v1
+  `orders()->split()` is unchanged — it keeps the child parcel, since its contract
+  exposes `items[].parcel_id`.)
+
+### Fixed
+
+- **Split now moves the box's delivery pin onto the new order** (v1 + v2). A
+  home-delivery order gets an early delivery pin at intake; previously a split left
+  that pin on the source order, orphaning it. The pin now follows the box to the
+  new order.
+
 ## [6.22.0] - 2026-08-28
 
 ### Changed
