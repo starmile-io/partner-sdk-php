@@ -113,38 +113,40 @@ final class Orders extends AbstractResource
     }
 
     /**
-     * Split one item off an existing multi-item order onto a NEW, cloned order —
-     * the v2 twin of v1's {@see \Starmile\PartnerSdk\Resource\Orders::split()}. The
-     * item is moved onto a fresh clone of the order; you name the new order with
-     * `$newOrderId` (your own reference), which must be unused and different from
-     * `$orderId`.
+     * Split one or more items off an existing multi-item order onto a NEW, cloned
+     * order — the v2 twin of v1's {@see \Starmile\PartnerSdk\Resource\Orders::split()}.
+     * The items you name in `$itemIds` are moved onto ONE fresh clone of the order
+     * (the source keeps the rest); you name the new order with `$newOrderId` (your
+     * own reference), which must be unused and different from `$orderId`.
      *
      * The result follows the v2 wire:
      * `array('tracking_number' => ..., 'order_id' => ..., 'source_order_id' => ...,
-     * 'item' => array('item_id' => ..., 'merchant_tracking' => ...))` — the NEW
-     * order's Starmile reference is `tracking_number` and `order_id` echoes your
-     * `$newOrderId`. The new order is a SINGLE-item order, stored the v2 way (the
-     * item lives on the order itself, no separate item to address), so — as with
-     * any v2 single-item order — you cannot {@see self::addItem()} to it; create a
-     * new order for an extra package.
+     * 'items' => array(array('item_id' => ..., 'merchant_tracking' => ...), ...))` —
+     * the NEW order's Starmile reference is `tracking_number` and `order_id` echoes
+     * your `$newOrderId`. Move a SINGLE item and the new order is a single-item
+     * order, stored the v2 way (the item lives on the order itself, no separate item
+     * to address), so — as with any v2 single-item order — you cannot
+     * {@see self::addItem()} to it. Move TWO OR MORE and the new order is a genuine
+     * multi-item order that keeps its items.
      *
      * An ordinary order is splittable only pre-custody; a CONSOLIDATION order can
      * be split any time before its boxes are packed (an item already received or
-     * shelved can still be pulled out). A folded SINGLE-item order has no item to
-     * split off, and an ALREADY-PACKED consolidation can no longer be split → 409;
-     * a `$newOrderId` already used, or equal to `$orderId`, is a 422.
+     * shelved can still be pulled out). A folded SINGLE-item source order has no
+     * item to split off, an ALREADY-PACKED consolidation can no longer be split, and
+     * naming every item (nothing left) → 409; an `item_id` that names no active item
+     * → 404; a `$newOrderId` already used, or equal to `$orderId`, is a 422.
      * Scope: `orders:update`.
      *
      * @param string      $orderId    Your order reference to split FROM.
-     * @param string      $itemId     Your item reference to peel off.
+     * @param string[]    $itemIds    Your item references to peel off — one or more, distinct.
      * @param string      $newOrderId Your own reference for the new order.
      * @param string|null $reason     Optional free-text reason.
      * @return array<string, mixed>
      */
-    public function split($orderId, $itemId, $newOrderId, $reason = null)
+    public function split($orderId, array $itemIds, $newOrderId, $reason = null)
     {
-        $path = '/api/v2/orders/' . rawurlencode($orderId) . '/items/' . rawurlencode($itemId) . '/split';
-        $body = array('new_order_id' => $newOrderId);
+        $path = '/api/v2/orders/' . rawurlencode($orderId) . '/split';
+        $body = array('item_ids' => array_values($itemIds), 'new_order_id' => $newOrderId);
 
         if ($reason !== null) {
             $body['reason'] = $reason;

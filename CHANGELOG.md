@@ -4,6 +4,34 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] - 2026-08-28
+
+### Changed (BREAKING)
+
+- **`split()` now peels off one or more parcels, named in the body, onto one new
+  order** (v1 + v2). The endpoint moved from
+  `POST /api/v1/orders/{order}/parcels/{item}/split` (and the v2
+  `…/items/{item}/split`) to `POST /api/v1/orders/{order}/split` (and
+  `POST /api/v2/orders/{order}/split`): the parcel is no longer in the URL. The
+  body carries `item_ids` — an array of your own item references (one or more,
+  distinct) — all moved onto the ONE order named by `new_order_id`; the source
+  keeps the parcels you did not name.
+- **`orders()->split()` / `v2()->orders()->split()` signatures changed:** the
+  second argument is now `array $itemIds` (was a single `string $itemId`) —
+  `split($orderId, array $itemIds, $newOrderId, $reason = null)`. Pass
+  `['PKG-2']` to move a single parcel.
+- **The response returns `items` (an array) instead of `item`.** Each entry is
+  `{ item_id, parcel_id }` on v1 and `{ item_id, merchant_tracking }` on v2, one
+  per moved parcel.
+- **v2 folds only a single-item split.** Moving one item still yields a folded
+  single-item order (item on the order row, no separately addressable item, so you
+  cannot `addItem()` to it); moving two or more yields a genuine multi-item order
+  that keeps its items.
+- **New refusals:** naming every active parcel (nothing would be left on the
+  source) is a `409`, and an `item_id` that names no active parcel on the order is
+  a `404`. The pre-custody / consolidation split windows and the `new_order_id`
+  uniqueness rules are unchanged.
+
 ## [6.23.0] - 2026-08-28
 
 ### Changed

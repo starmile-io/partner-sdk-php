@@ -178,34 +178,37 @@ final class Orders extends AbstractResource
     }
 
     /**
-     * Split one parcel off an existing order onto a NEW, cloned order. The parcel
-     * is detached and moved onto a fresh clone of the order (same service, flow,
-     * customer and destination); it keeps its own Starmile tracking number and
-     * continues its journey from wherever it already is. You name the new order
+     * Split one or more parcels off an existing order onto a NEW, cloned order. The
+     * parcels you name in `$itemIds` are detached and moved onto ONE fresh clone of
+     * the order (same service, flow, customer and destination); each keeps its own
+     * Starmile tracking number and continues its journey from wherever it already
+     * is, and the source keeps the parcels you did not name. You name the new order
      * with `$newOrderId` — your OWN reference for it — so you can track and manage
      * it like any other order; it must be unused across your orders and different
      * from `$orderId`.
      *
      * Returns `array('order_id' => ..., 'new_order_id' => ..., 'source_order_id'
-     * => ..., 'item' => array('item_id' => ..., 'parcel_id' => ...))` — `order_id`
-     * is the NEW order's Starmile tracking number, `parcel_id` the moved parcel's.
-     * An ordinary order is splittable only pre-custody (the parcel at its flow's
-     * first step); a CONSOLIDATION order can be split any time before its boxes are
-     * packed — a parcel already received or shelved for the consolidation can still
-     * be pulled out. An order with a single package, a cancelled order, or an
-     * ALREADY-PACKED consolidation is a 409; a `$newOrderId` already used, or equal
-     * to `$orderId`, is a 422. Scope: `orders:update`.
+     * => ..., 'items' => array(array('item_id' => ..., 'parcel_id' => ...), ...))`
+     * — `order_id` is the NEW order's Starmile tracking number, each `parcel_id` a
+     * moved parcel's. An ordinary order is splittable only pre-custody (the parcels
+     * at their flow's first step); a CONSOLIDATION order can be split any time
+     * before its boxes are packed — a parcel already received or shelved for the
+     * consolidation can still be pulled out. An order with a single package, a
+     * cancelled order, an ALREADY-PACKED consolidation, or naming every parcel
+     * (nothing left) is a 409; an `item_id` that names no active parcel is a 404; a
+     * `$newOrderId` already used, or equal to `$orderId`, is a 422. Scope:
+     * `orders:update`.
      *
      * @param string      $orderId    The partner's order reference (order_id) to split FROM.
-     * @param string      $itemId     The partner's parcel reference (item_id) to peel off.
-     * @param string      $newOrderId Your own reference for the new order the parcel is moved onto.
+     * @param string[]    $itemIds    The partner's parcel references (item_id) to peel off — one or more, distinct.
+     * @param string      $newOrderId Your own reference for the new order the parcels are moved onto.
      * @param string|null $reason     Optional free-text reason, kept on the new order's history.
      * @return array<string, mixed>
      */
-    public function split($orderId, $itemId, $newOrderId, $reason = null)
+    public function split($orderId, array $itemIds, $newOrderId, $reason = null)
     {
-        $path = '/api/v1/orders/' . rawurlencode($orderId) . '/parcels/' . rawurlencode($itemId) . '/split';
-        $body = array('new_order_id' => $newOrderId);
+        $path = '/api/v1/orders/' . rawurlencode($orderId) . '/split';
+        $body = array('item_ids' => array_values($itemIds), 'new_order_id' => $newOrderId);
 
         if ($reason !== null) {
             $body['reason'] = $reason;

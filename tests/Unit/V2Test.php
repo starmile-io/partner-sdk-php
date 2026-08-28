@@ -90,7 +90,7 @@ final class V2Test extends TestCase
         $this->assertSame('BOX-3', $result['item']['item_id']);
     }
 
-    public function testSplitPostsToTheV2ItemSplitPath()
+    public function testSplitPostsToTheV2OrderSplitPathWithItemIds()
     {
         $http = new FakeHttpClient();
         $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
@@ -98,19 +98,24 @@ final class V2Test extends TestCase
             'tracking_number' => 'STM-7QD1XW8A',
             'order_id' => 'PO-1-B',
             'source_order_id' => 'PO-1',
-            'item' => array('item_id' => 'BOX-2', 'merchant_tracking' => 'CN773300012345'),
+            'items' => array(
+                array('item_id' => 'BOX-2', 'merchant_tracking' => 'CN773300012345'),
+                array('item_id' => 'BOX-3', 'merchant_tracking' => 'CN773300012346'),
+            ),
         )));
 
-        $result = $this->client($http)->v2()->orders()->split('PO-1', 'BOX-2', 'PO-1-B', 'ships separately');
+        $result = $this->client($http)->v2()->orders()->split('PO-1', array('BOX-2', 'BOX-3'), 'PO-1-B', 'ships separately');
 
         $call = $http->lastRequest();
         $this->assertSame('POST', $call['method']);
-        $this->assertStringContainsString('/api/v2/orders/PO-1/items/BOX-2/split', $call['url']);
-        $this->assertSame(array('new_order_id' => 'PO-1-B', 'reason' => 'ships separately'), $http->lastJsonBody());
+        $this->assertStringContainsString('/api/v2/orders/PO-1/split', $call['url']);
+        $this->assertStringNotContainsString('/items/', $call['url']);
+        $this->assertSame(array('item_ids' => array('BOX-2', 'BOX-3'), 'new_order_id' => 'PO-1-B', 'reason' => 'ships separately'), $http->lastJsonBody());
         // The v2 wire: the new order's Starmile ref is tracking_number; order_id echoes new_order_id.
         $this->assertSame('STM-7QD1XW8A', $result['tracking_number']);
         $this->assertSame('PO-1-B', $result['order_id']);
-        $this->assertSame('BOX-2', $result['item']['item_id']);
+        $this->assertSame('BOX-2', $result['items'][0]['item_id']);
+        $this->assertSame('BOX-3', $result['items'][1]['item_id']);
     }
 
     public function testSubOrderManagementUsesTheV2SubOrderPaths()
