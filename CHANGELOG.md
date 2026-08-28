@@ -4,6 +4,20 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.22.0] - 2026-08-28
+
+### Changed
+
+- **`orders()->split()` / `v2()->orders()->split()` now accept an UNPACKED
+  consolidation order.** Previously any consolidation order was refused `409`;
+  now a consolidation order can be split any time **before its boxes are packed**
+  — a parcel already received at the hub, or shelved for the consolidation, can
+  still be pulled out onto its own order (it is taken off the consolidation and
+  its new order continues on its own). Only an **already-packed** consolidation is
+  refused `409`. Ordinary (non-consolidation) orders are unchanged — still
+  splittable pre-custody only. Purely a relaxation; no request/response shape or
+  signature change.
+
 ## [6.21.0] - 2026-08-27
 
 ### Added

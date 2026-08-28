@@ -125,8 +125,11 @@ final class Orders extends AbstractResource
      * order's Starmile reference is `tracking_number` and `order_id` echoes your
      * `$newOrderId`.
      *
-     * A folded SINGLE-item order has no item to split off (409); pre-custody only
-     * (else 409); a `$newOrderId` already used, or equal to `$orderId`, is a 422.
+     * An ordinary order is splittable only pre-custody; a CONSOLIDATION order can
+     * be split any time before its boxes are packed (an item already received or
+     * shelved can still be pulled out). A folded SINGLE-item order has no item to
+     * split off, and an ALREADY-PACKED consolidation can no longer be split → 409;
+     * a `$newOrderId` already used, or equal to `$orderId`, is a 422.
      * Scope: `orders:update`.
      *
      * @param string      $orderId    Your order reference to split FROM.
