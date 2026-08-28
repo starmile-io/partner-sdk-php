@@ -4,6 +4,30 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.21.0] - 2026-08-27
+
+### Added
+
+- **`orders()->split($orderId, $itemId, $newOrderId, $reason = null)`** — split
+  one parcel off an existing order onto a NEW, cloned order
+  (`POST /api/v1/orders/{order_id}/parcels/{item_id}/split`, scope
+  `orders:update`). The parcel is detached and moved onto a fresh clone of the
+  order (same service, flow, customer and destination), keeping its own Starmile
+  tracking number and its place at the flow's first step. You name the new order
+  with `$newOrderId` — your own reference — so you can track and manage it like
+  any other order. Returns
+  `array('order_id' => ..., 'new_order_id' => ..., 'source_order_id' => ..., 'item' => array('item_id' => ..., 'parcel_id' => ...))`
+  where `order_id` is the NEW order's Starmile tracking number. Only while the
+  parcel is pre-custody (its flow's first step) — else `409`; a single-package,
+  cancelled, or consolidation order is `409`; a `$newOrderId` already used, or
+  equal to `$orderId`, is `422`.
+- **`v2()->orders()->split($orderId, $itemId, $newOrderId, $reason = null)`** —
+  the v2 twin (`POST /api/v2/orders/{order_id}/items/{item_id}/split`, scope
+  `orders:update`). The result follows the v2 wire — the new order's Starmile
+  reference is `tracking_number` and `order_id` echoes your `$newOrderId`:
+  `array('tracking_number' => ..., 'order_id' => ..., 'source_order_id' => ..., 'item' => array('item_id' => ..., 'merchant_tracking' => ...))`.
+  A folded SINGLE-item order has no item to split off (`409`).
+
 ## [6.20.0] - 2026-08-26
 
 ### Added

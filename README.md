@@ -157,6 +157,15 @@ $starmile->orders()->updateParcel('ORD-1001', 'ITEM-1', [
     'merchant_tracking' => 'BARCODE-1B',
 ]);
 
+// Split one parcel off onto a NEW, cloned order (a fresh order with the same
+// service/flow/customer/destination). You name the new order with your own
+// reference ($newOrderId); it must be unused and different from the source.
+// Returns ['order_id' => <new order Starmile tracking>, 'new_order_id' => ...,
+//          'source_order_id' => ..., 'item' => ['item_id' => ..., 'parcel_id' => ...]].
+// Pre-custody only (409 once received); a single-package/cancelled/consolidation
+// order is 409; a used/duplicate $newOrderId is 422.
+$split = $starmile->orders()->split('ORD-1001', 'ITEM-2', 'ORD-1001-B', 'ships separately');
+
 // Cancel a single parcel while it is still pre-custody (409 once received).
 // When it was the order's last active parcel, the order is cancelled too.
 $starmile->orders()->cancelParcel('ORD-1001', 'ITEM-1', 'item out of stock');
@@ -337,6 +346,12 @@ $starmile->v2()->orders()->addItem('PO-1001', array(
 ));
 
 $starmile->v2()->orders()->updateItem('PO-1001', 'BOX-1', array('weight_grams' => 900));
+
+// Split one item off onto a NEW cloned order (the v2 twin of orders()->split()).
+// Result follows the v2 wire: ['tracking_number' => <new order ref>,
+// 'order_id' => 'PO-1001-B' (your new ref), 'source_order_id' => ..., 'item' => [...]].
+// A folded single-item order has nothing to split (409).
+$starmile->v2()->orders()->split('PO-1001', 'BOX-2', 'PO-1001-B', 'ships separately');
 
 foreach ($starmile->v2()->statusPool()->each(0) as $change) {
     // $change['order_id'] is YOUR reference on v2.

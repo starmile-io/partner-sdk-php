@@ -90,6 +90,29 @@ final class V2Test extends TestCase
         $this->assertSame('BOX-3', $result['item']['item_id']);
     }
 
+    public function testSplitPostsToTheV2ItemSplitPath()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(201, array('data' => array(
+            'tracking_number' => 'STM-7QD1XW8A',
+            'order_id' => 'PO-1-B',
+            'source_order_id' => 'PO-1',
+            'item' => array('item_id' => 'BOX-2', 'merchant_tracking' => 'CN773300012345'),
+        )));
+
+        $result = $this->client($http)->v2()->orders()->split('PO-1', 'BOX-2', 'PO-1-B', 'ships separately');
+
+        $call = $http->lastRequest();
+        $this->assertSame('POST', $call['method']);
+        $this->assertStringContainsString('/api/v2/orders/PO-1/items/BOX-2/split', $call['url']);
+        $this->assertSame(array('new_order_id' => 'PO-1-B', 'reason' => 'ships separately'), $http->lastJsonBody());
+        // The v2 wire: the new order's Starmile ref is tracking_number; order_id echoes new_order_id.
+        $this->assertSame('STM-7QD1XW8A', $result['tracking_number']);
+        $this->assertSame('PO-1-B', $result['order_id']);
+        $this->assertSame('BOX-2', $result['item']['item_id']);
+    }
+
     public function testSubOrderManagementUsesTheV2SubOrderPaths()
     {
         $http = new FakeHttpClient();
