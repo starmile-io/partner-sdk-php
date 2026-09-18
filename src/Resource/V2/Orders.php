@@ -258,6 +258,62 @@ final class Orders extends AbstractResource
     }
 
     /**
+     * The PROOF OF DELIVERY for a delivered order, as PDF bytes.
+     *
+     * One section per handover: a courier records one per BOX, while a pickup at
+     * a PUDO point is ONE collection for the whole order (it is a single act,
+     * verified once), so a multi-box order may show either shape.
+     *
+     * Each section prints your own references, the recipient, the address, when it
+     * happened IN THE DELIVERY COUNTRY'S OWN TIMEZONE, and then only the evidence
+     * that was actually captured — the delivery code in full, the signature and
+     * the photo. Nothing is printed empty: a proof that was never captured does
+     * not appear at all, and a handover with none says so in a sentence.
+     *
+     * Pass `$merchantTracking` to narrow the document to ONE box.
+     *
+     * STATUS CODES ARE NOT INTERCHANGEABLE HERE:
+     *  - 409 — the order (or the named box) is not delivered yet. It exists and
+     *          it is yours; do not go looking for a reference problem.
+     *  - 404 — the order is not yours, or we do not hold it. Deliberately the
+     *          same answer for both.
+     *
+     * A PARTLY delivered order still returns its document, with the remaining
+     * boxes listed under "Not yet delivered". Scope: `pod:read` (NOT
+     * `delivery_code:read` — a partner may hold either without the other).
+     *
+     * @param string      $orderId          Your order reference, or null when addressing by tracking number.
+     * @param string|null $trackingNumber   The Starmile tracking number instead.
+     * @param string|null $merchantTracking Optional — narrow to one box.
+     * @return string the raw PDF bytes
+     */
+    public function proofOfDelivery($orderId, $trackingNumber = null, $merchantTracking = null)
+    {
+        $query = $trackingNumber === null
+            ? array('order_id' => $orderId)
+            : array('tracking_number' => $trackingNumber);
+
+        if ($merchantTracking !== null) {
+            $query['merchant_tracking'] = $merchantTracking;
+        }
+
+        return $this->connection->getRaw('/api/v2/orders/pod', $query, 'application/pdf');
+    }
+
+    /**
+     * The proof of delivery addressed by the Starmile `tracking_number`.
+     * {@see self::proofOfDelivery()} for everything else.
+     *
+     * @param string      $trackingNumber
+     * @param string|null $merchantTracking
+     * @return string the raw PDF bytes
+     */
+    public function proofOfDeliveryByTrackingNumber($trackingNumber, $merchantTracking = null)
+    {
+        return $this->proofOfDelivery(null, $trackingNumber, $merchantTracking);
+    }
+
+    /**
      * Single-resource endpoints wrap the entity under a `data` key.
      *
      * @param array<string, mixed> $response

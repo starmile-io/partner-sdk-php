@@ -78,7 +78,9 @@ scopes on your credential.
 The same four groups exist on **API v2** under `$starmile->v2()` — see
 [API v2 — items / items](#api-v2--items--items). v2 adds one more:
 `$starmile->v2()->orders()->deliveryCode()` (`delivery_code:read`,
-`GET /api/v2/orders/delivery-code`).
+`GET /api/v2/orders/delivery-code`) and
+`$starmile->v2()->orders()->proofOfDelivery()` (`pod:read`,
+`GET /api/v2/orders/pod`).
 
 ### Catalogue
 
@@ -409,6 +411,35 @@ answer, not an error:
 
 An order that is not yours answers **404**, never 403 — the two are deliberately
 indistinguishable.
+
+### Proof of delivery (v2)
+
+The signed record of a handover, as PDF bytes. Scope: `pod:read`.
+
+```php
+$pdf = $starmile->v2()->orders()->proofOfDelivery('PO-1001');
+file_put_contents('pod.pdf', $pdf);
+
+// Narrow it to one box:
+$pdf = $starmile->v2()->orders()->proofOfDelivery('PO-1001', null, 'MT-0001');
+```
+
+One section per handover. A **courier** records one per box; a pickup at a **PUDO**
+point is one collection for the whole order (a single act, verified once), so a
+multi-box order may show either shape. Each section carries your references, the
+recipient, the address, the time **in the delivery country's own timezone**, and
+only the evidence actually captured — the delivery code in full, the signature,
+the photo. Nothing is printed empty, and a handover with no evidence says so.
+
+The status codes are not interchangeable:
+
+| Code | Means |
+| --- | --- |
+| `409` | Not delivered yet. The order exists and it is yours — do not go looking for a reference problem. |
+| `404` | Not yours, or we do not hold it. Deliberately the same answer for both. |
+
+A **partly** delivered order still returns its document, with the remaining boxes
+listed under "Not yet delivered".
 
 **Migrating from v1:** v1 and v2 are separate contracts served in parallel —
 pick one per integration. The v2 status-pool cursor is a **new id space**: a

@@ -242,6 +242,38 @@ final class V2Test extends TestCase
         $this->assertContains(Scope::POD_READ, Scope::all());
     }
 
+    public function testProofOfDeliveryReturnsRawPdfBytes()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueRaw(200, '%PDF-1.7 pod', array('Content-Type' => 'application/pdf'));
+
+        $pdf = $this->client($http)->v2()->orders()->proofOfDelivery('PO-10294');
+
+        $this->assertSame('%PDF-1.7 pod', $pdf);
+
+        $call = $http->lastRequest();
+        $this->assertStringContainsString('/api/v2/orders/pod?order_id=PO-10294', $call['url']);
+        $this->assertSame('application/pdf', $call['headers']['Accept']);
+        // Narrowing is opt-in; an un-narrowed call must not send an empty box ref.
+        $this->assertStringNotContainsString('merchant_tracking', $call['url']);
+    }
+
+    public function testProofOfDeliveryCanBeNarrowedToOneBox()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueRaw(200, '%PDF-1.7', array('Content-Type' => 'application/pdf'));
+
+        $this->client($http)->v2()->orders()
+            ->proofOfDeliveryByTrackingNumber('CMX0000012345', 'MT-0001');
+
+        $call = $http->lastRequest();
+        $this->assertStringContainsString('tracking_number=CMX0000012345', $call['url']);
+        $this->assertStringContainsString('merchant_tracking=MT-0001', $call['url']);
+        $this->assertStringNotContainsString('order_id', $call['url']);
+    }
+
     private function client(FakeHttpClient $http)
     {
         return new Client(new Configuration('id', 'secret', array('http_client' => $http, 'max_attempts' => 1)));

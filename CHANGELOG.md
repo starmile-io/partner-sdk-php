@@ -41,6 +41,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **`v2()->orders()->labelByOrderId($orderId)`** — the order label addressed by
   YOUR own order reference.
 
+- **`v2()->orders()->proofOfDelivery($orderId, null, $merchantTracking = null)`**
+  and **`proofOfDeliveryByTrackingNumber()`** — `GET /api/v2/orders/pod`, the
+  proof of delivery as PDF bytes. Scope: `pod:read`.
+
+  One section per handover: a courier records one per **box**, while a pickup at
+  a PUDO point is **one** collection for the whole order, so a multi-box order may
+  show either shape. Each section carries your references, the recipient, the
+  address, the time **in the delivery country's own timezone**, and only the
+  evidence actually captured — the delivery code in full, the signature, the
+  photo. Nothing is printed empty; a handover with no evidence says so.
+
+  The status codes are not interchangeable: **409** means the order (or the named
+  box) is not delivered yet — it exists and it is yours — while **404** means it
+  is not yours or we do not hold it. A **partly** delivered order still returns
+  its document, with the remaining boxes listed under "Not yet delivered".
+
 ### Changed
 
 - **`v2()->orders()->labelByTrackingNumber()` now sends `tracking_number`**
