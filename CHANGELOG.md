@@ -30,9 +30,28 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
   An order that is not yours answers 404, never 403.
 
-- **`Scope::POD_READ` (`pod:read`)** — the scope the endpoint requires. It is part
-  of the sender baseline and has been granted to existing sender credentials, so
-  an integration that already creates orders needs no change.
+- **`Scope::DELIVERY_CODE_READ` (`delivery_code:read`)** — the scope the delivery
+  code requires, and **`Scope::POD_READ` (`pod:read`)** for the proof of delivery
+  that follows it. They are deliberately separate: the code is a live secret that
+  still authorises a handover, a POD is a historical record of one, and a partner
+  may hold either without the other. Both are part of the sender baseline and have
+  been granted to existing sender credentials, so an integration that already
+  creates orders needs no change.
+
+- **`v2()->orders()->labelByOrderId($orderId)`** — the order label addressed by
+  YOUR own order reference.
+
+### Changed
+
+- **`v2()->orders()->labelByTrackingNumber()` now sends `tracking_number`**
+  (it sent `order_id`). On v2, `order_id` means YOUR reference everywhere — on
+  create, on the status pool, on delivery-code and now on the label too. v1
+  overloaded `order_id` with Starmile's tracking number; **v1 is unchanged.**
+
+  No call site needs editing: the method name and argument are the same, only the
+  query parameter it builds changed, and the server accepts the new spelling. Use
+  the new `labelByOrderId()` if you would rather address the order by your own
+  reference.
 
 ## [7.0.0] - 2026-08-28
 

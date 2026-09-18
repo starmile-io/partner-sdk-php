@@ -59,7 +59,27 @@ final class Orders extends AbstractResource
     {
         return $this->connection->getRaw(
             '/api/v2/orders/label',
-            array('order_id' => $trackingNumber),
+            array('tracking_number' => $trackingNumber),
+            'application/pdf'
+        );
+    }
+
+    /**
+     * Download a whole ORDER's label PDF, addressed by YOUR OWN order reference
+     * (the `order_id` you sent on create). Scope: `labels:read`.
+     *
+     * On v2 `order_id` means YOUR reference EVERYWHERE — on create, on the status
+     * pool, on delivery-code and here. v1 overloaded it with Starmile's tracking
+     * number; v1 keeps that meaning and is unaffected.
+     *
+     * @param string $orderId
+     * @return string the raw PDF bytes
+     */
+    public function labelByOrderId($orderId)
+    {
+        return $this->connection->getRaw(
+            '/api/v2/orders/label',
+            array('order_id' => $orderId),
             'application/pdf'
         );
     }
@@ -208,7 +228,9 @@ final class Orders extends AbstractResource
      *  - `not_yet_issued` — no code on the order (only orders created before
      *                       codes existed).
      *
-     * An order that is not yours is a 404, never a 403. Scope: `pod:read`.
+     * An order that is not yours is a 404, never a 403. Scope:
+     * `delivery_code:read` (NOT `pod:read` — a partner may hold the
+     * proof-of-delivery grant without this one).
      *
      * @param string      $orderId        Your order reference, or null when addressing by tracking number.
      * @param string|null $trackingNumber The Starmile tracking number instead.

@@ -4,6 +4,7 @@ namespace Starmile\PartnerSdk\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Starmile\PartnerSdk\Client;
+use Starmile\PartnerSdk\Enum\Scope;
 use Starmile\PartnerSdk\Configuration;
 use Starmile\PartnerSdk\Tests\Support\FakeHttpClient;
 
@@ -205,6 +206,40 @@ final class V2Test extends TestCase
         $call = $http->lastRequest();
         $this->assertStringContainsString('/api/v2/orders/delivery-code?tracking_number=CMX0000012345', $call['url']);
         $this->assertStringNotContainsString('order_id', $call['url']);
+    }
+
+    public function testV2LabelUsesTheV2Vocabulary()
+    {
+        // On v2, `order_id` is YOUR reference and `tracking_number` is ours —
+        // everywhere, including here. v1 overloaded `order_id` with the Starmile
+        // number; that meaning is gone from v2.
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueRaw(200, '%PDF-1.7', array('Content-Type' => 'application/pdf'));
+        $http->queueRaw(200, '%PDF-1.7', array('Content-Type' => 'application/pdf'));
+
+        $client = $this->client($http);
+
+        $client->v2()->orders()->labelByTrackingNumber('CMX0000012345');
+        $byTracking = $http->lastRequest();
+
+        $client->v2()->orders()->labelByOrderId('PO-10294');
+        $byOrderId = $http->lastRequest();
+
+        $this->assertStringContainsString('tracking_number=CMX0000012345', $byTracking['url']);
+        $this->assertStringNotContainsString('order_id', $byTracking['url']);
+
+        $this->assertStringContainsString('order_id=PO-10294', $byOrderId['url']);
+        $this->assertStringNotContainsString('tracking_number', $byOrderId['url']);
+    }
+
+    public function testDeliveryCodeAndPodAreSeparateScopes()
+    {
+        // The split, pinned: holding the proof-of-delivery grant must not imply
+        // holding the key to a handover that has not happened yet.
+        $this->assertNotSame(Scope::DELIVERY_CODE_READ, Scope::POD_READ);
+        $this->assertContains(Scope::DELIVERY_CODE_READ, Scope::all());
+        $this->assertContains(Scope::POD_READ, Scope::all());
     }
 
     private function client(FakeHttpClient $http)

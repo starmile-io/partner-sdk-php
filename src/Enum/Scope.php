@@ -31,11 +31,15 @@ final class Scope
     const LABELS_READ = 'labels:read';
 
     /**
-     * Read an order's handover evidence — GET /api/v2/orders/delivery-code.
+     * Read the LIVE handover code — GET /api/v2/orders/delivery-code.
      *
-     * Its own scope, not part of status:read: the delivery code AUTHORISES the
-     * handover, which is a different thing from following one.
+     * Separate from POD_READ on purpose: this is a SECRET that still authorises
+     * a handover, while a POD is a historical record of one that already
+     * happened. Holding one does not imply the other.
      */
+    const DELIVERY_CODE_READ = 'delivery_code:read';
+
+    /** Read a delivered order's proof of delivery — GET /api/v2/orders/pod. */
     const POD_READ = 'pod:read';
 
     /** Report transport (carrier) events — shipment.*. */
@@ -64,6 +68,7 @@ final class Scope
             self::CATALOGUE_READ,
             self::STATUS_READ,
             self::LABELS_READ,
+            self::DELIVERY_CODE_READ,
             self::POD_READ,
             self::EVENTS_TRANSPORT,
             self::EVENTS_PUDO,

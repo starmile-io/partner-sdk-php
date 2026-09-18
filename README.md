@@ -77,7 +77,7 @@ scopes on your credential.
 
 The same four groups exist on **API v2** under `$starmile->v2()` — see
 [API v2 — items / items](#api-v2--items--items). v2 adds one more:
-`$starmile->v2()->orders()->deliveryCode()` (`pod:read`,
+`$starmile->v2()->orders()->deliveryCode()` (`delivery_code:read`,
 `GET /api/v2/orders/delivery-code`).
 
 ### Catalogue
@@ -198,6 +198,11 @@ $pdf = $starmile->orders()->labelByParcelId('STM0000000121');
 // A whole ORDER's own label (order barcode/weight/contents) by the order's tracking number.
 file_put_contents('order-label.pdf', $starmile->orders()->labelByOrderId('STM0000000120'));
 ```
+
+> **v2 addresses labels differently.** On `$starmile->v2()`, `order_id` is YOUR
+> order reference and `tracking_number` is ours — the same meanings the rest of v2
+> uses. `parcel_id` does not exist on v2 at all. See
+> [API v2 — items / items](#api-v2--items--items).
 
 ### Status pool (replaces webhooks)
 
@@ -377,7 +382,11 @@ The code the recipient reads to the courier at the door. Your customers may neve
 see our tracking page, so this lets you show it in your own app. **Order-level**:
 one order carries one code however many boxes it ships in, and it does not change
 after a failed attempt. It exists as soon as the order does — there is nothing to
-poll for. Scope: `pod:read`.
+poll for. Scope: `delivery_code:read`.
+
+`delivery_code:read` and `pod:read` are **separate grants**: the code is a live
+secret that still authorises a handover, a proof of delivery is a record of one
+that already happened. A credential may hold either without the other.
 
 ```php
 $code = $starmile->v2()->orders()->deliveryCode('PO-1001');            // by YOUR reference
