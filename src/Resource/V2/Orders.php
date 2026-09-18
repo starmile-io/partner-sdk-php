@@ -59,7 +59,27 @@ final class Orders extends AbstractResource
     {
         return $this->connection->getRaw(
             '/api/v2/orders/label',
-            array('order_id' => $trackingNumber),
+            array('tracking_number' => $trackingNumber),
+            'application/pdf'
+        );
+    }
+
+    /**
+     * Download a whole ORDER's label PDF, addressed by YOUR OWN order reference
+     * (the `order_id` you sent on create). Scope: `labels:read`.
+     *
+     * On v2 `order_id` means YOUR reference EVERYWHERE — on create, on the status
+     * pool, on delivery-code and here. v1 overloaded it with Starmile's tracking
+     * number; v1 keeps that meaning and is unaffected.
+     *
+     * @param string $orderId
+     * @return string the raw PDF bytes
+     */
+    public function labelByOrderId($orderId)
+    {
+        return $this->connection->getRaw(
+            '/api/v2/orders/label',
+            array('order_id' => $orderId),
             'application/pdf'
         );
     }
@@ -185,6 +205,112 @@ final class Orders extends AbstractResource
         $body = $reason === null ? array() : array('reason' => $reason);
 
         return $this->unwrap($this->connection->post($path, $body));
+    }
+
+    /**
+     * The delivery code for one of your orders — the code the recipient reads to
+     * the courier at the door. Addressed by YOUR reference (`order_id`) or by the
+     * Starmile `tracking_number`; pass exactly one.
+     *
+     * ORDER-LEVEL: one order carries one code however many boxes it ships in, and
+     * the code does not change after a failed attempt.
+     *
+     * Available as soon as the order exists, so you can show it to your customer
+     * without polling for it.
+     *
+     * `status` says what the code is worth, and IS NOT AN ERROR — read it before
+     * displaying anything:
+     *
+     *  - `active`         — show it;
+     *  - `used`           — the parcel is delivered and the code has done its job;
+     *  - `not_required`   — this organization does not use delivery codes, so
+     *                       `delivery_code` is null and nothing should be shown;
+     *  - `not_yet_issued` — no code on the order (only orders created before
+     *                       codes existed).
+     *
+     * An order that is not yours is a 404, never a 403. Scope:
+     * `delivery_code:read` (NOT `pod:read` — a partner may hold the
+     * proof-of-delivery grant without this one).
+     *
+     * @param string      $orderId        Your order reference, or null when addressing by tracking number.
+     * @param string|null $trackingNumber The Starmile tracking number instead.
+     * @return array{tracking_number: string, order_id: ?string, delivery_code: ?string, status: string}
+     */
+    public function deliveryCode($orderId, $trackingNumber = null)
+    {
+        $query = $trackingNumber === null
+            ? array('order_id' => $orderId)
+            : array('tracking_number' => $trackingNumber);
+
+        return $this->unwrap($this->connection->get('/api/v2/orders/delivery-code', $query));
+    }
+
+    /**
+     * The delivery code addressed by the Starmile `tracking_number` rather than
+     * your own reference. {@see self::deliveryCode()} for the `status` values.
+     *
+     * @param string $trackingNumber
+     * @return array{tracking_number: string, order_id: ?string, delivery_code: ?string, status: string}
+     */
+    public function deliveryCodeByTrackingNumber($trackingNumber)
+    {
+        return $this->deliveryCode(null, $trackingNumber);
+    }
+
+    /**
+     * The PROOF OF DELIVERY for a delivered order, as PDF bytes.
+     *
+     * One section per handover: a courier records one per BOX, while a pickup at
+     * a PUDO point is ONE collection for the whole order (it is a single act,
+     * verified once), so a multi-box order may show either shape.
+     *
+     * Each section prints your own references, the recipient, the address, when it
+     * happened IN THE DELIVERY COUNTRY'S OWN TIMEZONE, and then only the evidence
+     * that was actually captured — the delivery code in full, the signature and
+     * the photo. Nothing is printed empty: a proof that was never captured does
+     * not appear at all, and a handover with none says so in a sentence.
+     *
+     * Pass `$merchantTracking` to narrow the document to ONE box.
+     *
+     * STATUS CODES ARE NOT INTERCHANGEABLE HERE:
+     *  - 409 — the order (or the named box) is not delivered yet. It exists and
+     *          it is yours; do not go looking for a reference problem.
+     *  - 404 — the order is not yours, or we do not hold it. Deliberately the
+     *          same answer for both.
+     *
+     * A PARTLY delivered order still returns its document, with the remaining
+     * boxes listed under "Not yet delivered". Scope: `pod:read` (NOT
+     * `delivery_code:read` — a partner may hold either without the other).
+     *
+     * @param string      $orderId          Your order reference, or null when addressing by tracking number.
+     * @param string|null $trackingNumber   The Starmile tracking number instead.
+     * @param string|null $merchantTracking Optional — narrow to one box.
+     * @return string the raw PDF bytes
+     */
+    public function proofOfDelivery($orderId, $trackingNumber = null, $merchantTracking = null)
+    {
+        $query = $trackingNumber === null
+            ? array('order_id' => $orderId)
+            : array('tracking_number' => $trackingNumber);
+
+        if ($merchantTracking !== null) {
+            $query['merchant_tracking'] = $merchantTracking;
+        }
+
+        return $this->connection->getRaw('/api/v2/orders/pod', $query, 'application/pdf');
+    }
+
+    /**
+     * The proof of delivery addressed by the Starmile `tracking_number`.
+     * {@see self::proofOfDelivery()} for everything else.
+     *
+     * @param string      $trackingNumber
+     * @param string|null $merchantTracking
+     * @return string the raw PDF bytes
+     */
+    public function proofOfDeliveryByTrackingNumber($trackingNumber, $merchantTracking = null)
+    {
+        return $this->proofOfDelivery(null, $trackingNumber, $merchantTracking);
     }
 
     /**

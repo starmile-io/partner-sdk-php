@@ -4,6 +4,71 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.0] - 2026-09-18
+
+### Added
+
+- **`v2()->orders()->deliveryCode($orderId)`** and
+  **`deliveryCodeByTrackingNumber($trackingNumber)`** —
+  `GET /api/v2/orders/delivery-code`, the code the recipient reads to the courier
+  at the door. Your own customers may never see our tracking page, so this lets
+  you show the code in your own app.
+
+  It is **order-level**: one order carries one code however many boxes it ships
+  in, and it does not change after a failed attempt. It is available as soon as
+  the order exists, so there is nothing to poll for.
+
+  Read `status` before displaying anything — the absence of a code is an ordinary
+  answer, not an error:
+
+  | `status` | What to do |
+  | --- | --- |
+  | `active` | Show the code |
+  | `used` | Delivered; the code has done its job |
+  | `not_required` | This organization does not use delivery codes — `delivery_code` is null, show nothing |
+  | `not_yet_issued` | No code on the order (only orders created before codes existed) |
+
+  An order that is not yours answers 404, never 403.
+
+- **`Scope::DELIVERY_CODE_READ` (`delivery_code:read`)** — the scope the delivery
+  code requires, and **`Scope::POD_READ` (`pod:read`)** for the proof of delivery
+  that follows it. They are deliberately separate: the code is a live secret that
+  still authorises a handover, a POD is a historical record of one, and a partner
+  may hold either without the other. Both are part of the sender baseline and have
+  been granted to existing sender credentials, so an integration that already
+  creates orders needs no change.
+
+- **`v2()->orders()->labelByOrderId($orderId)`** — the order label addressed by
+  YOUR own order reference.
+
+- **`v2()->orders()->proofOfDelivery($orderId, null, $merchantTracking = null)`**
+  and **`proofOfDeliveryByTrackingNumber()`** — `GET /api/v2/orders/pod`, the
+  proof of delivery as PDF bytes. Scope: `pod:read`.
+
+  One section per handover: a courier records one per **box**, while a pickup at
+  a PUDO point is **one** collection for the whole order, so a multi-box order may
+  show either shape. Each section carries your references, the recipient, the
+  address, the time **in the delivery country's own timezone**, and only the
+  evidence actually captured — the delivery code in full, the signature, the
+  photo. Nothing is printed empty; a handover with no evidence says so.
+
+  The status codes are not interchangeable: **409** means the order (or the named
+  box) is not delivered yet — it exists and it is yours — while **404** means it
+  is not yours or we do not hold it. A **partly** delivered order still returns
+  its document, with the remaining boxes listed under "Not yet delivered".
+
+### Changed
+
+- **`v2()->orders()->labelByTrackingNumber()` now sends `tracking_number`**
+  (it sent `order_id`). On v2, `order_id` means YOUR reference everywhere — on
+  create, on the status pool, on delivery-code and now on the label too. v1
+  overloaded `order_id` with Starmile's tracking number; **v1 is unchanged.**
+
+  No call site needs editing: the method name and argument are the same, only the
+  query parameter it builds changed, and the server accepts the new spelling. Use
+  the new `labelByOrderId()` if you would rather address the order by your own
+  reference.
+
 ## [7.0.0] - 2026-08-28
 
 ### Changed (BREAKING)
