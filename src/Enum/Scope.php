@@ -30,6 +30,14 @@ final class Scope
     /** Download a parcel label PDF — GET /api/v1/orders/label. */
     const LABELS_READ = 'labels:read';
 
+    /**
+     * Read an order's handover evidence — GET /api/v2/orders/delivery-code.
+     *
+     * Its own scope, not part of status:read: the delivery code AUTHORISES the
+     * handover, which is a different thing from following one.
+     */
+    const POD_READ = 'pod:read';
+
     /** Report transport (carrier) events — shipment.*. */
     const EVENTS_TRANSPORT = 'events:transport';
 
@@ -56,6 +64,7 @@ final class Scope
             self::CATALOGUE_READ,
             self::STATUS_READ,
             self::LABELS_READ,
+            self::POD_READ,
             self::EVENTS_TRANSPORT,
             self::EVENTS_PUDO,
             self::EVENTS_CUSTOMS,

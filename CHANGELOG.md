@@ -4,6 +4,36 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.0] - 2026-09-18
+
+### Added
+
+- **`v2()->orders()->deliveryCode($orderId)`** and
+  **`deliveryCodeByTrackingNumber($trackingNumber)`** —
+  `GET /api/v2/orders/delivery-code`, the code the recipient reads to the courier
+  at the door. Your own customers may never see our tracking page, so this lets
+  you show the code in your own app.
+
+  It is **order-level**: one order carries one code however many boxes it ships
+  in, and it does not change after a failed attempt. It is available as soon as
+  the order exists, so there is nothing to poll for.
+
+  Read `status` before displaying anything — the absence of a code is an ordinary
+  answer, not an error:
+
+  | `status` | What to do |
+  | --- | --- |
+  | `active` | Show the code |
+  | `used` | Delivered; the code has done its job |
+  | `not_required` | This organization does not use delivery codes — `delivery_code` is null, show nothing |
+  | `not_yet_issued` | No code on the order (only orders created before codes existed) |
+
+  An order that is not yours answers 404, never 403.
+
+- **`Scope::POD_READ` (`pod:read`)** — the scope the endpoint requires. It is part
+  of the sender baseline and has been granted to existing sender credentials, so
+  an integration that already creates orders needs no change.
+
 ## [7.0.0] - 2026-08-28
 
 ### Changed (BREAKING)

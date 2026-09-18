@@ -161,6 +161,52 @@ final class V2Test extends TestCase
         $this->assertStringContainsString('/api/v2/partner/events', $eventsUrl['url']);
     }
 
+    public function testDeliveryCodeIsAddressedByYourOwnOrderReference()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array(
+            'tracking_number' => 'CMX0000012345',
+            'order_id' => 'PO-10294',
+            'delivery_code' => '4821',
+            'status' => 'active',
+        )));
+
+        $code = $this->client($http)->v2()->orders()->deliveryCode('PO-10294');
+
+        $this->assertSame('4821', $code['delivery_code']);
+        $this->assertSame('active', $code['status']);
+
+        $call = $http->lastRequest();
+        $this->assertSame('GET', $call['method']);
+        $this->assertStringContainsString('/api/v2/orders/delivery-code?order_id=PO-10294', $call['url']);
+        // Exactly one reference goes on the wire.
+        $this->assertStringNotContainsString('tracking_number', $call['url']);
+    }
+
+    public function testDeliveryCodeCanBeAddressedByTheStarmileTrackingNumber()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array(
+            'tracking_number' => 'CMX0000012345',
+            'order_id' => 'PO-10294',
+            'delivery_code' => null,
+            // Not an error: the organization does not use delivery codes, so
+            // there is nothing for the caller to show.
+            'status' => 'not_required',
+        )));
+
+        $code = $this->client($http)->v2()->orders()->deliveryCodeByTrackingNumber('CMX0000012345');
+
+        $this->assertNull($code['delivery_code']);
+        $this->assertSame('not_required', $code['status']);
+
+        $call = $http->lastRequest();
+        $this->assertStringContainsString('/api/v2/orders/delivery-code?tracking_number=CMX0000012345', $call['url']);
+        $this->assertStringNotContainsString('order_id', $call['url']);
+    }
+
     private function client(FakeHttpClient $http)
     {
         return new Client(new Configuration('id', 'secret', array('http_client' => $http, 'max_attempts' => 1)));

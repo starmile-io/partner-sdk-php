@@ -188,6 +188,54 @@ final class Orders extends AbstractResource
     }
 
     /**
+     * The delivery code for one of your orders — the code the recipient reads to
+     * the courier at the door. Addressed by YOUR reference (`order_id`) or by the
+     * Starmile `tracking_number`; pass exactly one.
+     *
+     * ORDER-LEVEL: one order carries one code however many boxes it ships in, and
+     * the code does not change after a failed attempt.
+     *
+     * Available as soon as the order exists, so you can show it to your customer
+     * without polling for it.
+     *
+     * `status` says what the code is worth, and IS NOT AN ERROR — read it before
+     * displaying anything:
+     *
+     *  - `active`         — show it;
+     *  - `used`           — the parcel is delivered and the code has done its job;
+     *  - `not_required`   — this organization does not use delivery codes, so
+     *                       `delivery_code` is null and nothing should be shown;
+     *  - `not_yet_issued` — no code on the order (only orders created before
+     *                       codes existed).
+     *
+     * An order that is not yours is a 404, never a 403. Scope: `pod:read`.
+     *
+     * @param string      $orderId        Your order reference, or null when addressing by tracking number.
+     * @param string|null $trackingNumber The Starmile tracking number instead.
+     * @return array{tracking_number: string, order_id: ?string, delivery_code: ?string, status: string}
+     */
+    public function deliveryCode($orderId, $trackingNumber = null)
+    {
+        $query = $trackingNumber === null
+            ? array('order_id' => $orderId)
+            : array('tracking_number' => $trackingNumber);
+
+        return $this->unwrap($this->connection->get('/api/v2/orders/delivery-code', $query));
+    }
+
+    /**
+     * The delivery code addressed by the Starmile `tracking_number` rather than
+     * your own reference. {@see self::deliveryCode()} for the `status` values.
+     *
+     * @param string $trackingNumber
+     * @return array{tracking_number: string, order_id: ?string, delivery_code: ?string, status: string}
+     */
+    public function deliveryCodeByTrackingNumber($trackingNumber)
+    {
+        return $this->deliveryCode(null, $trackingNumber);
+    }
+
+    /**
      * Single-resource endpoints wrap the entity under a `data` key.
      *
      * @param array<string, mixed> $response

@@ -76,7 +76,9 @@ scopes on your credential.
 | `$starmile->events()`   | `events:transport`, `events:pudo`, `events:customs`, `leg:handoff`| `POST /api/v1/partner/events` |
 
 The same four groups exist on **API v2** under `$starmile->v2()` — see
-[API v2 — items / items](#api-v2--items--items).
+[API v2 — items / items](#api-v2--items--items). v2 adds one more:
+`$starmile->v2()->orders()->deliveryCode()` (`pod:read`,
+`GET /api/v2/orders/delivery-code`).
 
 ### Catalogue
 
@@ -368,6 +370,36 @@ foreach ($starmile->v2()->statusPool()->each(0) as $change) {
     // $change['order_id'] is YOUR reference on v2.
 }
 ```
+
+### Delivery code (v2)
+
+The code the recipient reads to the courier at the door. Your customers may never
+see our tracking page, so this lets you show it in your own app. **Order-level**:
+one order carries one code however many boxes it ships in, and it does not change
+after a failed attempt. It exists as soon as the order does — there is nothing to
+poll for. Scope: `pod:read`.
+
+```php
+$code = $starmile->v2()->orders()->deliveryCode('PO-1001');            // by YOUR reference
+$code = $starmile->v2()->orders()->deliveryCodeByTrackingNumber('CMX0000012345');
+
+if ($code['status'] === 'active') {
+    echo $code['delivery_code'];   // e.g. "4821"
+}
+```
+
+Read `status` before displaying anything — the absence of a code is an ordinary
+answer, not an error:
+
+| `status` | What to do |
+| --- | --- |
+| `active` | Show the code |
+| `used` | Delivered; the code has done its job |
+| `not_required` | This organization does not use delivery codes — `delivery_code` is null, show nothing |
+| `not_yet_issued` | No code on the order (only orders created before codes existed) |
+
+An order that is not yours answers **404**, never 403 — the two are deliberately
+indistinguishable.
 
 **Migrating from v1:** v1 and v2 are separate contracts served in parallel —
 pick one per integration. The v2 status-pool cursor is a **new id space**: a
