@@ -4,6 +4,7 @@ namespace Starmile\PartnerSdk\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Starmile\PartnerSdk\Client;
+use Starmile\PartnerSdk\Enum\Scope;
 use Starmile\PartnerSdk\Configuration;
 use Starmile\PartnerSdk\Tests\Support\FakeHttpClient;
 
@@ -159,6 +160,118 @@ final class V2Test extends TestCase
 
         $this->assertStringContainsString('/api/v2/services', $servicesUrl['url']);
         $this->assertStringContainsString('/api/v2/partner/events', $eventsUrl['url']);
+    }
+
+    public function testDeliveryCodeIsAddressedByYourOwnOrderReference()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array(
+            'tracking_number' => 'CMX0000012345',
+            'order_id' => 'PO-10294',
+            'delivery_code' => '4821',
+            'status' => 'active',
+        )));
+
+        $code = $this->client($http)->v2()->orders()->deliveryCode('PO-10294');
+
+        $this->assertSame('4821', $code['delivery_code']);
+        $this->assertSame('active', $code['status']);
+
+        $call = $http->lastRequest();
+        $this->assertSame('GET', $call['method']);
+        $this->assertStringContainsString('/api/v2/orders/delivery-code?order_id=PO-10294', $call['url']);
+        // Exactly one reference goes on the wire.
+        $this->assertStringNotContainsString('tracking_number', $call['url']);
+    }
+
+    public function testDeliveryCodeCanBeAddressedByTheStarmileTrackingNumber()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array(
+            'tracking_number' => 'CMX0000012345',
+            'order_id' => 'PO-10294',
+            'delivery_code' => null,
+            // Not an error: the organization does not use delivery codes, so
+            // there is nothing for the caller to show.
+            'status' => 'not_required',
+        )));
+
+        $code = $this->client($http)->v2()->orders()->deliveryCodeByTrackingNumber('CMX0000012345');
+
+        $this->assertNull($code['delivery_code']);
+        $this->assertSame('not_required', $code['status']);
+
+        $call = $http->lastRequest();
+        $this->assertStringContainsString('/api/v2/orders/delivery-code?tracking_number=CMX0000012345', $call['url']);
+        $this->assertStringNotContainsString('order_id', $call['url']);
+    }
+
+    public function testV2LabelUsesTheV2Vocabulary()
+    {
+        // On v2, `order_id` is YOUR reference and `tracking_number` is ours —
+        // everywhere, including here. v1 overloaded `order_id` with the Starmile
+        // number; that meaning is gone from v2.
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueRaw(200, '%PDF-1.7', array('Content-Type' => 'application/pdf'));
+        $http->queueRaw(200, '%PDF-1.7', array('Content-Type' => 'application/pdf'));
+
+        $client = $this->client($http);
+
+        $client->v2()->orders()->labelByTrackingNumber('CMX0000012345');
+        $byTracking = $http->lastRequest();
+
+        $client->v2()->orders()->labelByOrderId('PO-10294');
+        $byOrderId = $http->lastRequest();
+
+        $this->assertStringContainsString('tracking_number=CMX0000012345', $byTracking['url']);
+        $this->assertStringNotContainsString('order_id', $byTracking['url']);
+
+        $this->assertStringContainsString('order_id=PO-10294', $byOrderId['url']);
+        $this->assertStringNotContainsString('tracking_number', $byOrderId['url']);
+    }
+
+    public function testDeliveryCodeAndPodAreSeparateScopes()
+    {
+        // The split, pinned: holding the proof-of-delivery grant must not imply
+        // holding the key to a handover that has not happened yet.
+        $this->assertNotSame(Scope::DELIVERY_CODE_READ, Scope::POD_READ);
+        $this->assertContains(Scope::DELIVERY_CODE_READ, Scope::all());
+        $this->assertContains(Scope::POD_READ, Scope::all());
+    }
+
+    public function testProofOfDeliveryReturnsRawPdfBytes()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueRaw(200, '%PDF-1.7 pod', array('Content-Type' => 'application/pdf'));
+
+        $pdf = $this->client($http)->v2()->orders()->proofOfDelivery('PO-10294');
+
+        $this->assertSame('%PDF-1.7 pod', $pdf);
+
+        $call = $http->lastRequest();
+        $this->assertStringContainsString('/api/v2/orders/pod?order_id=PO-10294', $call['url']);
+        $this->assertSame('application/pdf', $call['headers']['Accept']);
+        // Narrowing is opt-in; an un-narrowed call must not send an empty box ref.
+        $this->assertStringNotContainsString('merchant_tracking', $call['url']);
+    }
+
+    public function testProofOfDeliveryCanBeNarrowedToOneBox()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueRaw(200, '%PDF-1.7', array('Content-Type' => 'application/pdf'));
+
+        $this->client($http)->v2()->orders()
+            ->proofOfDeliveryByTrackingNumber('CMX0000012345', 'MT-0001');
+
+        $call = $http->lastRequest();
+        $this->assertStringContainsString('tracking_number=CMX0000012345', $call['url']);
+        $this->assertStringContainsString('merchant_tracking=MT-0001', $call['url']);
+        $this->assertStringNotContainsString('order_id', $call['url']);
     }
 
     private function client(FakeHttpClient $http)

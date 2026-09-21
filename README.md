@@ -76,7 +76,11 @@ scopes on your credential.
 | `$starmile->events()`   | `events:transport`, `events:pudo`, `events:customs`, `leg:handoff`| `POST /api/v1/partner/events` |
 
 The same four groups exist on **API v2** under `$starmile->v2()` — see
-[API v2 — items / items](#api-v2--items--items).
+[API v2 — items / items](#api-v2--items--items). v2 adds one more:
+`$starmile->v2()->orders()->deliveryCode()` (`delivery_code:read`,
+`GET /api/v2/orders/delivery-code`) and
+`$starmile->v2()->orders()->proofOfDelivery()` (`pod:read`,
+`GET /api/v2/orders/pod`).
 
 ### Catalogue
 
@@ -196,6 +200,11 @@ $pdf = $starmile->orders()->labelByParcelId('STM0000000121');
 // A whole ORDER's own label (order barcode/weight/contents) by the order's tracking number.
 file_put_contents('order-label.pdf', $starmile->orders()->labelByOrderId('STM0000000120'));
 ```
+
+> **v2 addresses labels differently.** On `$starmile->v2()`, `order_id` is YOUR
+> order reference and `tracking_number` is ours — the same meanings the rest of v2
+> uses. `parcel_id` does not exist on v2 at all. See
+> [API v2 — items / items](#api-v2--items--items).
 
 ### Status pool (replaces webhooks)
 
@@ -368,6 +377,69 @@ foreach ($starmile->v2()->statusPool()->each(0) as $change) {
     // $change['order_id'] is YOUR reference on v2.
 }
 ```
+
+### Delivery code (v2)
+
+The code the recipient reads to the courier at the door. Your customers may never
+see our tracking page, so this lets you show it in your own app. **Order-level**:
+one order carries one code however many boxes it ships in, and it does not change
+after a failed attempt. It exists as soon as the order does — there is nothing to
+poll for. Scope: `delivery_code:read`.
+
+`delivery_code:read` and `pod:read` are **separate grants**: the code is a live
+secret that still authorises a handover, a proof of delivery is a record of one
+that already happened. A credential may hold either without the other.
+
+```php
+$code = $starmile->v2()->orders()->deliveryCode('PO-1001');            // by YOUR reference
+$code = $starmile->v2()->orders()->deliveryCodeByTrackingNumber('CMX0000012345');
+
+if ($code['status'] === 'active') {
+    echo $code['delivery_code'];   // e.g. "4821"
+}
+```
+
+Read `status` before displaying anything — the absence of a code is an ordinary
+answer, not an error:
+
+| `status` | What to do |
+| --- | --- |
+| `active` | Show the code |
+| `used` | Delivered; the code has done its job |
+| `not_required` | This organization does not use delivery codes — `delivery_code` is null, show nothing |
+| `not_yet_issued` | No code on the order (only orders created before codes existed) |
+
+An order that is not yours answers **404**, never 403 — the two are deliberately
+indistinguishable.
+
+### Proof of delivery (v2)
+
+The signed record of a handover, as PDF bytes. Scope: `pod:read`.
+
+```php
+$pdf = $starmile->v2()->orders()->proofOfDelivery('PO-1001');
+file_put_contents('pod.pdf', $pdf);
+
+// Narrow it to one box:
+$pdf = $starmile->v2()->orders()->proofOfDelivery('PO-1001', null, 'MT-0001');
+```
+
+One section per handover. A **courier** records one per box; a pickup at a **PUDO**
+point is one collection for the whole order (a single act, verified once), so a
+multi-box order may show either shape. Each section carries your references, the
+recipient, the address, the time **in the delivery country's own timezone**, and
+only the evidence actually captured — the delivery code in full, the signature,
+the photo. Nothing is printed empty, and a handover with no evidence says so.
+
+The status codes are not interchangeable:
+
+| Code | Means |
+| --- | --- |
+| `409` | Not delivered yet. The order exists and it is yours — do not go looking for a reference problem. |
+| `404` | Not yours, or we do not hold it. Deliberately the same answer for both. |
+
+A **partly** delivered order still returns its document, with the remaining boxes
+listed under "Not yet delivered".
 
 **Migrating from v1:** v1 and v2 are separate contracts served in parallel —
 pick one per integration. The v2 status-pool cursor is a **new id space**: a
