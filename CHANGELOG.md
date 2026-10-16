@@ -4,6 +4,40 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.2.0] - 2026-10-16
+
+### Added
+
+- **`v2()->manifests()->file($manifest)`** and **`dryRun($manifest)`** —
+  `POST /api/v2/manifests`, for the origin facility that builds a consignment to
+  file its inbound air manifest instead of emailing a workbook.
+
+  A manifest says which packages travel on which air waybill, and in which bag.
+  Until it arrives the consignment cannot be filed with Azerbaijani customs at
+  all: the customs manifest is filed **per air waybill**, and nothing else
+  records which waybill a package is on.
+
+  `ManifestBuilder` mirrors the manifest document — header plus one row per
+  package — and derives the package and bag totals from the rows you added, so a
+  document can never contradict itself. Only the GROSS weight is stated by hand
+  (`grossWeightKg()`), because it includes bag tare and the rows cannot produce
+  it.
+
+  Two things are worth knowing before integrating:
+
+  - **`etd()` is the field that matters.** We file the consignment with customs
+    automatically when the departure time passes — the last moment the
+    declaration count can still be corrected. Send it, and keep re-filing until
+    it passes.
+  - **A filing REPLACES the previous one** for that waybill (`mode: full`, the
+    default), which is what lets a package pulled from the flight actually
+    disappear from the count. Use `asPart()` only if you genuinely split one
+    consignment across several documents.
+
+- **`Scope::MANIFESTS_WRITE`** (`manifests:write`) — the grant the endpoint
+  requires. It is issued explicitly per credential and is never part of the
+  sender baseline, so an existing order-sending credential does not have it.
+
 ## [7.1.0] - 2026-09-21
 
 ### Added

@@ -80,7 +80,9 @@ The same four groups exist on **API v2** under `$starmile->v2()` — see
 `$starmile->v2()->orders()->deliveryCode()` (`delivery_code:read`,
 `GET /api/v2/orders/delivery-code`) and
 `$starmile->v2()->orders()->proofOfDelivery()` (`pod:read`,
-`GET /api/v2/orders/pod`).
+`GET /api/v2/orders/pod`), and — for the origin facility that builds a
+consignment rather than the merchant that sends orders —
+`$starmile->v2()->manifests()` (`manifests:write`, `POST /api/v2/manifests`).
 
 ### Catalogue
 
@@ -440,6 +442,74 @@ The status codes are not interchangeable:
 
 A **partly** delivered order still returns its document, with the remaining boxes
 listed under "Not yet delivered".
+
+### Air manifests (v2)
+
+For the **origin facility / forwarder** that builds a consignment, not for a
+merchant sending orders. A manifest says which packages travel on which air
+waybill, and in which bag. Until it arrives the consignment cannot be filed with
+Azerbaijani customs at all: the customs manifest is filed **per air waybill**,
+and nothing else records which waybill a package is on.
+
+Scope: `manifests:write` — granted explicitly per credential, never part of the
+sender baseline.
+
+```php
+use Starmile\PartnerSdk\Builder\ManifestBuilder;
+
+$manifest = ManifestBuilder::make('784-85403894')   // the master air waybill
+    ->flight('CZ5795')
+    ->origin('CN', 'Corssborder Air Service Limited')
+    ->etd('2026-10-15 03:10')                       // departure — see below
+    ->eta('2026-10-16 20:40')
+    ->manifestDate('2026-10-12')
+    ->grossWeightKg(193)                            // bag tare INCLUDED
+    ->row('CMX0209075611', 'BOX109022AZ', 1.345, array(
+        'recipient_name'  => 'Aysel Mammadova',
+        'recipient_phone' => '+994501234567',
+        'district'        => 'Baku',
+        'address'         => '12 Nizami St, Apt 5',
+        'pieces'          => 1,
+        'declared_value'  => 72.01,
+        'currency'        => 'USD',
+        'description'     => 'Sweater, Women Blouse',
+        'hs_codes'        => array('6110200090', '6202409000'),
+        'service_method'  => 'HOME_DELIVERY',
+    ))
+    ->row('CMX0209075612', 'BOX109022AZ', 2.5);
+
+// Validate and see the full report without writing anything — do this first.
+$preview = $starmile->v2()->manifests()->dryRun($manifest);
+
+$report = $starmile->v2()->manifests()->file($manifest);
+```
+
+Each row's `tracking_number` is **our** reference — the one returned when the
+order was created — not your own id. `bag_no` becomes the barcode our warehouse
+scans on arrival, so it must match the label on the physical bag. The remaining
+row fields are stored for reconciliation and never applied to the order; the
+order already carries what you sent at intake.
+
+Totals are derived from the rows, so the header cannot contradict the body. Only
+the gross weight is yours to state — it includes bag tare and is expected to
+exceed what the row weights sum to.
+
+Two things decide whether the integration actually works:
+
+- **`etd()` is the field that matters, not `eta()`.** We file the consignment
+  with customs automatically when the departure time passes, because that is the
+  last moment the declaration count can still be corrected. Omit it and nothing
+  is filed automatically.
+- **Re-file whenever the consignment changes.** Each filing REPLACES the previous
+  one for that waybill, which is what lets a package you pulled from the flight
+  actually disappear from the count. Filing the identical document twice is
+  harmless. Use `asPart()` only if you genuinely split one consignment across
+  several documents.
+
+The `202` report is worth reading on every filing: `not_found` lists tracking
+numbers we do not recognise (those packages will not clear customs until they are
+registered) and `already_on_another_awb` lists orders already flying elsewhere,
+which are never moved silently.
 
 **Migrating from v1:** v1 and v2 are separate contracts served in parallel —
 pick one per integration. The v2 status-pool cursor is a **new id space**: a

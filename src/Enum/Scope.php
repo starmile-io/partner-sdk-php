@@ -55,6 +55,16 @@ final class Scope
     const LEG_HANDOFF = 'leg:handoff';
 
     /**
+     * File an inbound air manifest — POST /api/v2/manifests.
+     *
+     * Granted EXPLICITLY, never as part of a sender baseline: filing a manifest
+     * writes the air waybill onto every order it names and sets the declared
+     * weight the customs manifest is sized against. It belongs to the origin
+     * facility that builds the consignment, not to a merchant that sends orders.
+     */
+    const MANIFESTS_WRITE = 'manifests:write';
+
+    /**
      * Every scope value.
      *
      * @return array<int, string>
@@ -74,6 +84,7 @@ final class Scope
             self::EVENTS_PUDO,
             self::EVENTS_CUSTOMS,
             self::LEG_HANDOFF,
+            self::MANIFESTS_WRITE,
         );
     }
 }

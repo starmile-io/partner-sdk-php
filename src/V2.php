@@ -4,6 +4,7 @@ namespace Starmile\PartnerSdk;
 
 use Starmile\PartnerSdk\Resource\V2\Catalogue;
 use Starmile\PartnerSdk\Resource\V2\Events;
+use Starmile\PartnerSdk\Resource\V2\Manifests;
 use Starmile\PartnerSdk\Resource\V2\Orders;
 use Starmile\PartnerSdk\Resource\V2\StatusPool;
 
@@ -45,6 +46,9 @@ final class V2
 
     /** @var Events|null */
     private $events;
+
+    /** @var Manifests|null */
+    private $manifests;
 
     public function __construct(Connection $connection)
     {
@@ -106,5 +110,23 @@ final class V2
         }
 
         return $this->events;
+    }
+
+    /**
+     * Inbound air manifests (scope: manifests:write).
+     *
+     * For the ORIGIN FACILITY that builds a consignment, not for a merchant
+     * sending orders — the grant is issued explicitly and is never part of the
+     * sender baseline.
+     *
+     * @return Manifests
+     */
+    public function manifests()
+    {
+        if ($this->manifests === null) {
+            $this->manifests = new Manifests($this->connection);
+        }
+
+        return $this->manifests;
     }
 }
