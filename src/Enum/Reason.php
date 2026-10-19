@@ -39,6 +39,12 @@ final class Reason
     /** The shipment exceeds the recipient's personal allowance — treated as commercial. */
     const COMMERCIAL_QUANTITY_PERSONAL_ALLOWANCE_EXCEEDED = 'commercial_quantity_personal_allowance_exceeded';
 
+    /** Customs hold: the box arrived with damaged packaging. */
+    const DAMAGED_PACKAGING = 'damaged_packaging';
+
+    /** Customs hold: any other reason — `reason_detail` carries the explanation. */
+    const OTHER = 'other';
+
     // --- Failed deliveries (status: delivery_failed) -------------------------
 
     /** Nobody was there to receive the parcel. */
