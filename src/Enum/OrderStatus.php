@@ -61,6 +61,13 @@ final class OrderStatus
     const TRANSPORT_DOCUMENT_ENTERED = 'transport_document_entered';
     const CUSTOMS_RELEASED = 'customs_released';
     const DEPARTED = 'departed';
+    // Road line-haul across borders, confirmed by the truck driver at each post
+    // (SuratKargo's TR → GE → AZ trucks today).
+    const DEPARTED_EXPORT_CUSTOMS = 'departed_export_customs';
+    const ARRIVED_TRANSIT_CUSTOMS = 'arrived_transit_customs';
+    const DEPARTED_TRANSIT_CUSTOMS = 'departed_transit_customs';
+    const ARRIVED_DESTINATION_BORDER = 'arrived_destination_border';
+    const CROSSED_DESTINATION_BORDER = 'crossed_destination_border';
     const CUSTOMS_HOLD = 'customs_hold';
     const CUSTOMS_HOLD_RESOLVED = 'customs_hold_resolved';
     const RECEIVED_AT_PUDO = 'received_at_pudo';
