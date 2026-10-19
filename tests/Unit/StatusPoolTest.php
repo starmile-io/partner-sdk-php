@@ -5,6 +5,7 @@ namespace Starmile\PartnerSdk\Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Starmile\PartnerSdk\Client;
 use Starmile\PartnerSdk\Configuration;
+use Starmile\PartnerSdk\Enum\OrderStatus;
 use Starmile\PartnerSdk\Enum\Reason;
 use Starmile\PartnerSdk\Tests\Support\FakeHttpClient;
 
@@ -242,5 +243,14 @@ final class StatusPoolTest extends TestCase
     private function client(FakeHttpClient $http)
     {
         return new Client(new Configuration('id', 'secret', array('http_client' => $http, 'max_attempts' => 1)));
+    }
+
+    public function testRoadLineHaulStatusesMatchTheWireValues()
+    {
+        $this->assertSame('departed_export_customs', OrderStatus::DEPARTED_EXPORT_CUSTOMS);
+        $this->assertSame('arrived_transit_customs', OrderStatus::ARRIVED_TRANSIT_CUSTOMS);
+        $this->assertSame('departed_transit_customs', OrderStatus::DEPARTED_TRANSIT_CUSTOMS);
+        $this->assertSame('arrived_destination_border', OrderStatus::ARRIVED_DESTINATION_BORDER);
+        $this->assertSame('crossed_destination_border', OrderStatus::CROSSED_DESTINATION_BORDER);
     }
 }

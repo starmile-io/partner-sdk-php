@@ -4,6 +4,23 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.2.0] - 2026-10-19
+
+### Added
+
+- **Five road line-haul statuses** on `OrderStatus`, reported by the truck
+  driver as a cross-border truck passes each post (today SuratKargo's
+  Türkiye → Georgia → Azerbaijan trucks). They appear in the status pool like
+  any other status, in this order:
+
+  | Constant | Value | Meaning |
+  | --- | --- | --- |
+  | `DEPARTED_EXPORT_CUSTOMS` | `departed_export_customs` | Left the origin country's customs |
+  | `ARRIVED_TRANSIT_CUSTOMS` | `arrived_transit_customs` | Reached the transit country's customs |
+  | `DEPARTED_TRANSIT_CUSTOMS` | `departed_transit_customs` | Left the transit country's customs |
+  | `ARRIVED_DESTINATION_BORDER` | `arrived_destination_border` | At the destination country's border |
+  | `CROSSED_DESTINATION_BORDER` | `crossed_destination_border` | Crossed into the destination country |
+
 ## [7.1.0] - 2026-09-21
 
 ### Added
