@@ -4,6 +4,15 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.3.0] - 2026-10-19
+
+### Added
+
+- **Two customs-hold reasons** on `Reason`: `DAMAGED_PACKAGING`
+  (`damaged_packaging` — the box arrived damaged) and `OTHER` (`other` — any
+  other reason; read `reason_detail` for the explanation). The export desk could
+  already raise holds with them; they now reach the status pool as codes.
+
 ## [7.2.0] - 2026-10-19
 
 ### Added

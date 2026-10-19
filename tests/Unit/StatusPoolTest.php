@@ -253,4 +253,10 @@ final class StatusPoolTest extends TestCase
         $this->assertSame('arrived_destination_border', OrderStatus::ARRIVED_DESTINATION_BORDER);
         $this->assertSame('crossed_destination_border', OrderStatus::CROSSED_DESTINATION_BORDER);
     }
+
+    public function testCustomsHoldReasonsIncludeDamagedPackagingAndOther()
+    {
+        $this->assertSame('damaged_packaging', Reason::DAMAGED_PACKAGING);
+        $this->assertSame('other', Reason::OTHER);
+    }
 }
