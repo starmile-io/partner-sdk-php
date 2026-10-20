@@ -208,6 +208,69 @@ final class V2Test extends TestCase
         $this->assertStringNotContainsString('order_id', $call['url']);
     }
 
+    public function testOrderDetailIsAddressedByYourOwnOrderReference()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array(
+            'tracking_number' => 'CMX0000012345',
+            'order_id' => 'PO-10294',
+            'status' => 'sorted',
+            // ORDER-LEVEL: the carton's numbers, and when the scale last saw it.
+            'dimensions' => array(
+                'weight_grams' => 2350,
+                'volumetric_weight_grams' => 4000,
+                'chargeable_weight_grams' => 4000,
+                'length_mm' => 400,
+                'width_mm' => 300,
+                'height_mm' => 200,
+                'volume_cm3' => 24000,
+                'measured_at' => '2026-10-03T09:10:00+00:00',
+            ),
+            // Contents only: no status and no dimensions of their own.
+            'items' => array(
+                array('item_id' => 'BOX-1', 'merchant_tracking' => 'MT-0001', 'package_type' => 'fragile', 'products' => array(
+                    array('name' => 'Running shoes', 'hs_code' => '640411', 'quantity' => 1, 'unit_price' => '50.00', 'currency' => 'USD', 'weight_grams' => 900, 'description' => null),
+                )),
+            ),
+        )));
+
+        $detail = $this->client($http)->v2()->orders()->detail('PO-10294');
+
+        $this->assertSame('sorted', $detail['status']);
+        $this->assertSame(4000, $detail['dimensions']['chargeable_weight_grams']);
+        $this->assertSame('BOX-1', $detail['items'][0]['item_id']);
+        $this->assertArrayNotHasKey('status', $detail['items'][0]);
+
+        $call = $http->lastRequest();
+        $this->assertSame('GET', $call['method']);
+        $this->assertStringContainsString('/api/v2/orders/detail?order_id=PO-10294', $call['url']);
+        // Exactly one reference goes on the wire.
+        $this->assertStringNotContainsString('tracking_number', $call['url']);
+    }
+
+    public function testOrderDetailCanBeAddressedByTheStarmileTrackingNumber()
+    {
+        $http = new FakeHttpClient();
+        $http->queueJson(200, array('access_token' => 'tok', 'expires_in' => 3600));
+        $http->queueJson(200, array('data' => array(
+            'tracking_number' => 'CMX0000012345',
+            'order_id' => 'PO-10294',
+            'status' => 'waiting_for_arrival',
+            // Not measured yet: the weights are still the partner's declaration.
+            'dimensions' => array('weight_grams' => 1200, 'volumetric_weight_grams' => null, 'chargeable_weight_grams' => 1200, 'length_mm' => null, 'width_mm' => null, 'height_mm' => null, 'volume_cm3' => null, 'measured_at' => null),
+            'items' => array(),
+        )));
+
+        $detail = $this->client($http)->v2()->orders()->detailByTrackingNumber('CMX0000012345');
+
+        $this->assertNull($detail['dimensions']['measured_at']);
+
+        $call = $http->lastRequest();
+        $this->assertStringContainsString('/api/v2/orders/detail?tracking_number=CMX0000012345', $call['url']);
+        $this->assertStringNotContainsString('order_id', $call['url']);
+    }
+
     public function testV2LabelUsesTheV2Vocabulary()
     {
         // On v2, `order_id` is YOUR reference and `tracking_number` is ours —

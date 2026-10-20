@@ -258,6 +258,55 @@ final class Orders extends AbstractResource
     }
 
     /**
+     * One of your orders IN FULL — what the order IS, where the status pool
+     * says what happened to it. Addressed by YOUR reference (`order_id`) or by
+     * the Starmile `tracking_number`; pass exactly one.
+     *
+     * ORDER-LEVEL: after consolidation the order is the physical box, so
+     * `status` and `dimensions` belong to the order, and `items[]` are its
+     * contents — each named by your `item_id` and `merchant_tracking`, listing
+     * the products you declared, with no status or dimensions of its own.
+     *
+     * `dimensions` carries `weight_grams` (actual), `volumetric_weight_grams`,
+     * `chargeable_weight_grams` (the greater of the two — what customs is told),
+     * `length_mm` / `width_mm` / `height_mm` / `volume_cm3`, and `measured_at`:
+     * when the hub scale last measured the carton. `measured_at` null means
+     * nothing has been measured yet and the numbers are still what you declared.
+     *
+     * Also: `consolidation` (`required`, `consolidated_at`, `package_sealed_at`),
+     * `delivery` (`type`, address fields, `region`, `parent_region`, `pudo`),
+     * `declared_value` + `currency`, `created_at`, `cancelled_at`, `cancel_reason`.
+     * The recipient's own contact details are deliberately not returned.
+     *
+     * An order that is not yours is a 404, never a 403. Scope: `orders:read`
+     * (NOT `status:read` — following an order does not imply reading it).
+     *
+     * @param string      $orderId        Your order reference, or null when addressing by tracking number.
+     * @param string|null $trackingNumber The Starmile tracking number instead.
+     * @return array<string, mixed>
+     */
+    public function detail($orderId, $trackingNumber = null)
+    {
+        $query = $trackingNumber === null
+            ? array('order_id' => $orderId)
+            : array('tracking_number' => $trackingNumber);
+
+        return $this->unwrap($this->connection->get('/api/v2/orders/detail', $query));
+    }
+
+    /**
+     * The order detail addressed by the Starmile `tracking_number` rather than
+     * your own reference. {@see self::detail()} for the shape.
+     *
+     * @param string $trackingNumber
+     * @return array<string, mixed>
+     */
+    public function detailByTrackingNumber($trackingNumber)
+    {
+        return $this->detail(null, $trackingNumber);
+    }
+
+    /**
      * The PROOF OF DELIVERY for a delivered order, as PDF bytes.
      *
      * One section per handover: a courier records one per BOX, while a pickup at

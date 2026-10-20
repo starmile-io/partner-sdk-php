@@ -76,7 +76,9 @@ scopes on your credential.
 | `$starmile->events()`   | `events:transport`, `events:pudo`, `events:customs`, `leg:handoff`| `POST /api/v1/partner/events` |
 
 The same four groups exist on **API v2** under `$starmile->v2()` — see
-[API v2 — items / items](#api-v2--items--items). v2 adds one more:
+[API v2 — items / items](#api-v2--items--items). v2 adds three more:
+`$starmile->v2()->orders()->detail()` (`orders:read`,
+`GET /api/v2/orders/detail`),
 `$starmile->v2()->orders()->deliveryCode()` (`delivery_code:read`,
 `GET /api/v2/orders/delivery-code`) and
 `$starmile->v2()->orders()->proofOfDelivery()` (`pod:read`,
@@ -377,6 +379,50 @@ foreach ($starmile->v2()->statusPool()->each(0) as $change) {
     // $change['order_id'] is YOUR reference on v2.
 }
 ```
+
+### Order detail (v2)
+
+One of your orders in full. The status pool says what *happened* to an order;
+this says what the order *is*. Scope: `orders:read` (a sender default — your
+existing credential already holds it).
+
+**Order-level.** After consolidation the order is the physical box, so `status`
+and `dimensions` belong to the order, and `items[]` are its contents — each
+named by your own `item_id` and `merchant_tracking`, listing the products you
+declared, with no status or dimensions of its own.
+
+```php
+$order = $starmile->v2()->orders()->detail('PO-1001');            // by YOUR reference
+$order = $starmile->v2()->orders()->detailByTrackingNumber('CMX0000012345');
+
+echo $order['status'];                                   // "sorted"
+echo $order['dimensions']['chargeable_weight_grams'];    // 4000 — max(actual, volumetric)
+
+if ($order['dimensions']['measured_at'] === null) {
+    // Nothing measured yet: the weights are still what you declared.
+}
+
+foreach ($order['items'] as $item) {
+    echo $item['item_id'], ' ', $item['merchant_tracking'];
+    foreach ($item['products'] as $product) {
+        echo ' ', $product['name'], ' x', $product['quantity'];
+    }
+}
+```
+
+| Field | What it is |
+| --- | --- |
+| `tracking_number`, `order_id`, `status` | Ours, yours, and the order's current status (the v2 status-pool vocabulary) |
+| `created_at`, `cancelled_at`, `cancel_reason` | ISO 8601 timestamps; the cancel fields are null while the order is live |
+| `origin_country`, `destination_country` | ISO 3166-1 alpha-2 |
+| `consolidation` | `required`, `consolidated_at`, `package_sealed_at` |
+| `delivery` | `type` (`home` / `pudo` / `locker`), `address`, `address_first`, `address_second`, `zip`, `notes`, `region`, `parent_region` as you sent them, and `pudo { id, name }` for a PUDO order |
+| `declared_value`, `currency` | The order's declared value as you sent it |
+| `dimensions` | `weight_grams` (actual), `volumetric_weight_grams`, `chargeable_weight_grams`, `length_mm`, `width_mm`, `height_mm`, `volume_cm3`, `measured_at` |
+| `items[]` | `item_id`, `merchant_tracking`, `package_type`, `products[]` (`name`, `hs_code`, `quantity`, `unit_price`, `currency`, `weight_grams`, `description`) |
+
+The recipient's name, phone, email and government ID are **not** returned. An
+order that is not yours answers **404**, never 403.
 
 ### Delivery code (v2)
 

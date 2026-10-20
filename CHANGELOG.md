@@ -4,6 +4,27 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.4.0] - 2026-10-20
+
+### Added
+
+- **`v2()->orders()->detail($orderId)`** and
+  **`detailByTrackingNumber($trackingNumber)`** — `GET /api/v2/orders/detail`,
+  one of your orders in full. The status pool says what *happened* to an order;
+  this says what the order *is*: its status, where it is going, the carton's
+  measured dimensions and weights, and the items inside with the products you
+  declared.
+
+  It is **order-level**: after consolidation the order is the physical box, so
+  `status` and `dimensions` belong to the order and `items[]` are its contents —
+  each named by your `item_id` and `merchant_tracking`, with no status or
+  dimensions of its own. `dimensions.measured_at` tells you whether the numbers
+  are the hub scale's or still your own declaration (`null`).
+
+  Scope: **`orders:read`** (`Scope::ORDERS_READ`), a new sender default that
+  existing sender credentials receive automatically. An order that is not yours
+  answers 404, never 403.
+
 ## [7.3.0] - 2026-10-19
 
 ### Added

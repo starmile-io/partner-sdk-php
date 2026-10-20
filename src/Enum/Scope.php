@@ -42,6 +42,16 @@ final class Scope
     /** Read a delivered order's proof of delivery — GET /api/v2/orders/pod. */
     const POD_READ = 'pod:read';
 
+    /**
+     * Read one of your orders in full — GET /api/v2/orders/detail: status, the
+     * carton's measured dimensions, the destination and the items with their
+     * declared products.
+     *
+     * Separate from STATUS_READ: the status pool is a movement log, and
+     * following an order does not imply reading its declared values and address.
+     */
+    const ORDERS_READ = 'orders:read';
+
     /** Report transport (carrier) events — shipment.*. */
     const EVENTS_TRANSPORT = 'events:transport';
 
