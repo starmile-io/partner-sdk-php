@@ -108,7 +108,7 @@ use Starmile\PartnerSdk\Builder\ProductBuilder;
 
 $order = OrderBuilder::make($serviceId, 'ORD-1001')   // service_id + your order_id
     ->recipient('Jane Doe', '+994500000000', 'jane@example.com', '5AB12C3')  // 4th arg = gov_id (AZ FIN / passport)
-    ->deliverToPudo(42)                                // or ->deliverHome('1', '2') / ->deliverToLocker($lockerId)
+    ->deliverToPudo(42)                                // or the point's code ->deliverToPudo('CMX-P6126902'), ->deliverHome('1', '2'), ->deliverToLocker($lockerId)
     ->shippingCost(9.90)
     ->addParcel(
         ParcelBuilder::make('ITEM-1')                // your per-item reference (echoed back as partner_tracking)
