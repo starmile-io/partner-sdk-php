@@ -4,6 +4,17 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.5.0] - 2026-11-13
+
+### Changed
+
+- **`OrderBuilder::deliverToPudo()`** now also takes the PUDO point's public
+  code (`'CMX-P6126902'`) as well as its Starmile id (`42`). The API's
+  `pudo_id` accepts either on `POST /api/v1/orders` and `POST /api/v2/orders`;
+  the code is matched case-insensitively. A numeric string is still sent as an
+  integer. An unknown code, or a point not shown to you, is the same `422` as
+  an unknown id.
+
 ## [7.4.0] - 2026-10-20
 
 ### Added

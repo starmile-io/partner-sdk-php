@@ -56,6 +56,13 @@ final class OrdersTest extends TestCase
         $this->assertSame('USD', $body['parcels'][0]['products'][0]['currency']);
     }
 
+    public function testDeliverToPudoAcceptsTheIdOrThePublicCode()
+    {
+        $this->assertSame('CMX-P6126902', OrderBuilder::make(7, 'ORD-1')->deliverToPudo(' CMX-P6126902 ')->toArray()['pudo_id']);
+        $this->assertSame(42, OrderBuilder::make(7, 'ORD-1')->deliverToPudo('42')->toArray()['pudo_id']);
+        $this->assertSame(42, OrderBuilder::make(7, 'ORD-1')->deliverToPudo(42)->toArray()['pudo_id']);
+    }
+
     public function testDeliverHomeSendsPartnerParentAndRegionRefsForMapping()
     {
         $http = new FakeHttpClient();

@@ -96,13 +96,16 @@ final class OrderBuilder
     }
 
     /**
-     * Deliver to a PUDO point (Pudo Delivery services).
+     * Deliver to a PUDO point (Pudo Delivery services), named by its Starmile id
+     * (`42`) or its public code (`'CMX-P6126902'`).
      *
+     * @param int|string $pudoId
      * @return $this
      */
     public function deliverToPudo($pudoId)
     {
-        $this->attributes['pudo_id'] = (int) $pudoId;
+        $pudoId = is_string($pudoId) ? trim($pudoId) : $pudoId;
+        $this->attributes['pudo_id'] = is_int($pudoId) || ctype_digit((string) $pudoId) ? (int) $pudoId : (string) $pudoId;
 
         return $this;
     }
