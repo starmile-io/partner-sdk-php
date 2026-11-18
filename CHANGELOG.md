@@ -4,6 +4,16 @@ All notable changes to the Starmile Partner SDK are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.5.1] - 2026-11-18
+
+### Fixed
+
+- **`OrderStatus::CONSOLIDATED`** is now `'consolidated'`, the string the
+  status pool actually sends. It was `'Consolidated'`, so a comparison against
+  the constant never matched. The pool reports `consolidated` for an order whose
+  packages were packed into another order's carton, and later `delivered` when
+  that carton is delivered.
+
 ## [7.5.0] - 2026-11-13
 
 ### Changed

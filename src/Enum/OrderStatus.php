@@ -7,8 +7,8 @@ namespace Starmile\PartnerSdk\Enum;
  * `previous_status` fields of GET /api/v1/partner/changes). Provided as constants
  * so integrations can compare against names instead of magic strings.
  *
- * Values mirror the server vocabulary VERBATIM — including the intentional casing
- * of `Consolidated` and the hyphen in `dispatched-from_hub`. Do not "correct" them.
+ * Values mirror the server vocabulary VERBATIM — including the hyphen in
+ * `dispatched-from_hub`. Do not "correct" it.
  */
 final class OrderStatus
 {
@@ -30,7 +30,7 @@ final class OrderStatus
     const CONSOLIDATION_STUFFED = 'consolidation_stuffed';
     const CONSOLIDATION_READY = 'consolidation_ready';
     const CONSOLIDATION_PICKED = 'consolidation_picked';
-    const CONSOLIDATED = 'Consolidated';
+    const CONSOLIDATED = 'consolidated';
     const ACCEPTED_AT_HUB = 'accepted_at_hub';
     const DECLARATION_PUSHED = 'declaration_pushed';
     const DECLARATION_CONFIRMED = 'declaration_confirmed';

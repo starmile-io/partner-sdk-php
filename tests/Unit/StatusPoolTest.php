@@ -248,6 +248,8 @@ final class StatusPoolTest extends TestCase
     public function testRoadLineHaulStatusesMatchTheWireValues()
     {
         $this->assertSame('departed_export_customs', OrderStatus::DEPARTED_EXPORT_CUSTOMS);
+        // The pool sends it lower-case like every other status.
+        $this->assertSame('consolidated', OrderStatus::CONSOLIDATED);
         $this->assertSame('arrived_transit_customs', OrderStatus::ARRIVED_TRANSIT_CUSTOMS);
         $this->assertSame('departed_transit_customs', OrderStatus::DEPARTED_TRANSIT_CUSTOMS);
         $this->assertSame('arrived_destination_border', OrderStatus::ARRIVED_DESTINATION_BORDER);
